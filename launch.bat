@@ -10,3 +10,4 @@ if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Launcher encountered an issue. See logs\ folder for error diagnostics.
     pause
 )
+

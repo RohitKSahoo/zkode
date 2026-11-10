@@ -259,3 +259,4 @@ if (-not $NoBrowser) {
     Start-Sleep -Seconds 1
     Start-Process $frontendUrl
 }
+

@@ -92,9 +92,10 @@ def verify_snarkjs_pairing(
 
         try:
             circuits_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "circuits"))
+            cwd_dir = circuits_dir if os.path.isdir(circuits_dir) else os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
             res = subprocess.run(
                 ["node", "-e", node_script],
-                cwd=circuits_dir,
+                cwd=cwd_dir if os.path.isdir(cwd_dir) else None,
                 capture_output=True,
                 text=True,
                 timeout=15
