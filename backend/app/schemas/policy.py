@@ -1,33 +1,34 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
 QUANTIZATION_BUCKET = 25000
 
 class CompilePolicyRequest(BaseModel):
     prompt: str = Field(
-        ..., 
-        example="Applicant must be at least 18 years old, have balance >= ₹50,000, and annual income <= ₹8,00,000"
+        ...,
+        description="Natural language statutory rule or policy text",
+        examples=["Scholarship applicant must be at least 18 years old, maintain bank balance >= ₹50,000, annual income <= ₹8,00,000, and academic score >= 8.2 CGPA."]
     )
-    service_scope_id: str = Field(default="901", example="901")
+    service_scope_id: str = Field(default="901", description="Unique campaign / service scope identifier")
 
 class QuantizedPolicySchema(BaseModel):
-    min_age: int = Field(default=0, ge=0, le=120)
-    min_balance: int = Field(default=0, ge=0)
-    max_income: int = Field(default=999999999, ge=0)
-    min_cgpa_x100: int = Field(default=0, ge=0, le=1000)
-    service_scope_id: str = Field(default="901")
+    min_age: int = Field(default=0, ge=0, le=120, description="Minimum age requirement in years")
+    min_balance: int = Field(default=0, ge=0, description="Minimum liquid bank balance requirement in INR")
+    max_income: int = Field(default=999999999, ge=0, description="Maximum allowable annual household income in INR")
+    min_cgpa_x100: int = Field(default=0, ge=0, le=1000, description="Academic CGPA / merit score scaled by 100 (e.g. 8.20 -> 820)")
+    service_scope_id: str = Field(default="901", description="Service scope identifier")
 
     @field_validator("min_balance", "max_income")
     @classmethod
-    def enforce_25k_buckets(cls, val: int) -> int:
-        if val == 999999999:
-            return val
+    def enforce_25k_quantization(cls, val: int) -> int:
+        if val >= 999999999:
+            return 999999999
         if val % QUANTIZATION_BUCKET != 0:
             return (val // QUANTIZATION_BUCKET) * QUANTIZATION_BUCKET
         return val
 
 class CompiledPolicyResponse(BaseModel):
-    success: bool
+    success: bool = True
     policy_id: str
     serviceScopeId: str
     currentTimestamp: str
@@ -36,32 +37,4 @@ class CompiledPolicyResponse(BaseModel):
     maxIncomeAllowed: str
     minScoreRequired: str
     symbolicReceipt: List[str]
-
-class ChallengeResponse(BaseModel):
-    sessionId: str
-    sessionNonce: str
-    expiresAt: int
-    ttlSeconds: int = 60
-
-class Groth16Proof(BaseModel):
-    pi_a: List[str]
-    pi_b: List[List[str]]
-    pi_c: List[str]
-    protocol: str = "groth16"
-    curve: str = "bn128"
-
-class VerifyProofRequest(BaseModel):
-    proof: Groth16Proof
-    clientNullifier: str
-    serviceScopeId: str = "901"
-    sessionNonce: str
-
-class VerifyProofResponse(BaseModel):
-    verified: bool
-    nullifierHash: Optional[str] = None
-    serviceScopeId: Optional[str] = None
-    message: str
-    error: Optional[str] = None
-    sybilBlocked: bool = False
-    telemetry: Optional[Dict[str, Any]] = None
 
