@@ -19,11 +19,11 @@ const DEFAULT_CREDENTIALS: PrivateCredentials = {
   actualIncome: "350000",
   creditOrCgpaScore: "860",
   expirationTimestamp: "20261115",
-  sigR8x: "1351119567990714856697380182600570775533353457199042657802878933215570081829",
-  sigR8y: "14841775189709280385959955735165682283038676231922416049439603001859600742152",
-  sigS: "1632734185797686733261621516087532326795499252328860010091807661271618826500",
-  issuerPubKeyAx: "1846294719203948571920394857192039485719203948571920394857",
-  issuerPubKeyAy: "928374910293847561029384756102938475610293847561029384756",
+  sigR8x: "15983502441014741693118001401111597102620505013186307209250310093672474092456",
+  sigR8y: "1979485915277033923079535022718253435669059167959695902127897338093088485962",
+  sigS: "135030378803597992460893792216210384268754990109084567856506613330019146666",
+  issuerPubKeyAx: "13277427435165878497778222415993513565335242147425444199013288855685581939618",
+  issuerPubKeyAy: "13622229784656158136036771217484571176836296686641868549125388198837476602820",
 };
 
 const DEFAULT_POLICY: PublicPolicy = {
@@ -157,8 +157,28 @@ export default function Home() {
     }
   };
 
+  // Fetch Live Nullifier Ledger
+  const fetchLedger = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/ledger");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ledger) {
+          setNullifierLedger(
+            data.ledger.map((item: any) => ({
+              nullifier: item.nullifier_hash,
+              scope: item.service_scope_id,
+              timestamp: item.claimed_at,
+            }))
+          );
+        }
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     fetchChallenge();
+    fetchLedger();
     const interval = setInterval(() => {
       setNonceTtl((prev) => (prev > 1 ? prev - 1 : 60));
     }, 1000);
@@ -168,11 +188,33 @@ export default function Home() {
   // Mint Sample Credentials
   const handleMintNewDemo = async () => {
     try {
-      const res = await fetch("/api/crypto/mint", {
+      let res = await fetch("http://localhost:8000/api/crypto/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userSecretId: Math.floor(Math.random() * 1e15).toString(),
+          birthTimestamp: "20030416",
+          actualBalance: "84500",
+          actualIncome: "350000",
+          creditOrCgpaScore: "860",
+          expirationTimestamp: "20261115",
+        }),
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch("/api/crypto/mint", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userSecretId: Math.floor(Math.random() * 1e15).toString(),
+            birthTimestamp: "20030416",
+            actualBalance: "84500",
+            actualIncome: "350000",
+            creditOrCgpaScore: "860",
+            expirationTimestamp: "20261115",
+          }),
+        });
+      }
           birthTimestamp: "20030416",
           actualBalance: "84500",
           actualIncome: "350000",
@@ -270,6 +312,7 @@ export default function Home() {
       const data = await res.json();
       if (res.ok && data.verified) {
         setVerificationResult(data);
+        fetchLedger();
         setNullifierLedger((prev) => [
           {
             nullifier: nullifierHash,
