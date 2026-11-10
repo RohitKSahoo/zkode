@@ -9,6 +9,8 @@ import { RedTeamAttackBar } from "../components/RedTeamAttackBar";
 import { PrivateCredentials, buildWitness, PublicPolicy } from "../lib/witnessBuilder";
 import { executeZkProof, ZkProofResult } from "../lib/zkProver";
 
+type ActivePage = "vault" | "network" | "verifier";
+
 const DEFAULT_CREDENTIALS: PrivateCredentials = {
   userSecretId: "981273918237192837129837192837",
   birthTimestamp: "20030416",
@@ -33,6 +35,8 @@ const DEFAULT_POLICY: PublicPolicy = {
 };
 
 export default function Home() {
+  const [activePage, setActivePage] = useState<ActivePage>("vault");
+
   const [credentials, setCredentials] = useState<PrivateCredentials>(DEFAULT_CREDENTIALS);
   const [policy, setPolicy] = useState<PublicPolicy>(DEFAULT_POLICY);
   const [policyPrompt, setPolicyPrompt] = useState(
@@ -63,7 +67,6 @@ export default function Home() {
   // Red Team State
   const [activeAttack, setActiveAttack] = useState<string>("NONE");
   const [signatureTampered, setSignatureTampered] = useState<boolean>(false);
-  const [serverHealthy, setServerHealthy] = useState<boolean>(true);
 
   // Fetch Session Challenge Nonce
   const fetchChallenge = async () => {
@@ -73,11 +76,9 @@ export default function Home() {
         const data = await res.json();
         setSessionNonce(data.sessionNonce);
         setNonceTtl(60);
-        setServerHealthy(true);
         return;
       }
     } catch {
-      setServerHealthy(false);
       setSessionNonce(Math.floor(Math.random() * 1e16).toString() + Math.floor(Math.random() * 1e16).toString());
       setNonceTtl(60);
     }
@@ -287,7 +288,7 @@ export default function Home() {
         pi_a: ["0xdeadbeef12345678", prev.proof.pi_a[1], "1"],
       },
     }));
-    alert("Wire coordinate pi a altered before transmission.");
+    alert("Wire coordinate pi_a altered before transmission.");
   };
 
   const handleReset = () => {
@@ -301,72 +302,117 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#000000] text-[#FAFAFA]">
-      <Header serverHealthy={serverHealthy} proverReady={true} />
+    <div className="flex flex-col min-h-screen text-[#FAFAFA]">
+      <Header />
 
-      {/* Hero Headline Section adhering to B5 layout limits */}
-      <section className="px-6 pt-2 pb-6 text-center max-w-[680px] mx-auto">
-        <h1 className="heading-hero mb-3">
+      {/* Hero Section */}
+      <section className="px-6 pt-10 pb-8 text-center max-w-2xl mx-auto">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 mb-4 bg-[#0A0A0A] border border-[#262626] rounded-none">
+          <span className="w-1.5 h-1.5 bg-[#D71921]" />
+          <span className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest">
+            Groth16 Zero Knowledge System
+          </span>
+        </div>
+        <h1 className="heading-hero font-bold tracking-tight mb-3">
           Prove your eligibility without revealing your identity
         </h1>
-        <p className="body-standard text-zinc-400">
+        <p className="body-standard max-w-lg mx-auto">
           Statutory compliance verified locally in browser WebAssembly using zero knowledge proofs.
           Zero bytes of personal data transmitted across the wire.
         </p>
       </section>
 
-      {/* 3-Column Glass-Box Grid */}
-      <main className="flex-1 px-4 pb-28 max-w-[1600px] w-full mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-          {/* Column 1: Private Vault */}
-          <div className="lg:col-span-4 flex flex-col">
-            <PrivateVault
-              credentials={credentials}
-              isProving={isProving}
-              proverTimeMs={proverTimeMs}
-              onGenerateProof={handleGenerateProof}
-              onMintNewDemo={handleMintNewDemo}
-              signatureTampered={signatureTampered}
-            />
-          </div>
+      {/* Main Single Page View Container */}
+      <main className="flex-1 px-4 pb-32 w-full max-w-5xl mx-auto">
+        {activePage === "vault" && (
+          <PrivateVault
+            credentials={credentials}
+            isProving={isProving}
+            proverTimeMs={proverTimeMs}
+            onGenerateProof={handleGenerateProof}
+            onMintNewDemo={handleMintNewDemo}
+            signatureTampered={signatureTampered}
+          />
+        )}
 
-          {/* Column 2: Network Inspector */}
-          <div className="lg:col-span-4 flex flex-col">
-            <NetworkInspector
-              proofData={proofData}
-              nullifierHash={nullifierHash}
-              sessionNonce={sessionNonce}
-              nonceTtl={nonceTtl}
-              onSubmitProof={handleSubmitProof}
-              isSubmitting={isSubmitting}
-              canSubmit={!!proofData && !isProving}
-            />
-          </div>
+        {activePage === "network" && (
+          <NetworkInspector
+            proofData={proofData}
+            nullifierHash={nullifierHash}
+            sessionNonce={sessionNonce}
+            nonceTtl={nonceTtl}
+            onSubmitProof={handleSubmitProof}
+            isSubmitting={isSubmitting}
+            canSubmit={!!proofData && !isProving}
+          />
+        )}
 
-          {/* Column 3: Policy Studio */}
-          <div className="lg:col-span-4 flex flex-col">
-            <VerifierPortal
-              policyPrompt={policyPrompt}
-              onPolicyChange={setPolicyPrompt}
-              onCompilePolicy={handleCompilePolicy}
-              isCompiling={isCompiling}
-              compiledPolicy={policy as any}
-              symbolicReceipt={symbolicReceipt}
-              verificationResult={verificationResult}
-              nullifierLedger={nullifierLedger}
-            />
-          </div>
-        </div>
+        {activePage === "verifier" && (
+          <VerifierPortal
+            policyPrompt={policyPrompt}
+            onPolicyChange={setPolicyPrompt}
+            onCompilePolicy={handleCompilePolicy}
+            isCompiling={isCompiling}
+            compiledPolicy={policy as any}
+            symbolicReceipt={symbolicReceipt}
+            verificationResult={verificationResult}
+            nullifierLedger={nullifierLedger}
+          />
+        )}
       </main>
 
-      <RedTeamAttackBar
-        onInjectFakeBalance={handleInjectFakeBalance}
-        onReplayProof={handleReplayProof}
-        onProbeUnquantized={handleProbeUnquantized}
-        onTamperWire={handleTamperWire}
-        onReset={handleReset}
-        activeAttack={activeAttack}
-      />
+      {/* Expandable Footer Pill Menu - Visible ONLY in the Verifier Page */}
+      {activePage === "verifier" && (
+        <RedTeamAttackBar
+          onInjectFakeBalance={handleInjectFakeBalance}
+          onReplayProof={handleReplayProof}
+          onProbeUnquantized={handleProbeUnquantized}
+          onTamperWire={handleTamperWire}
+          onReset={handleReset}
+          activeAttack={activeAttack}
+        />
+      )}
+
+      {/* Bottom Dock for Switching Pages */}
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
+          <button
+            onClick={() => setActivePage("vault")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "vault"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "vault" ? "text-black" : "text-[#D71921]"}>01</span>
+            <span>// Private Vault</span>
+          </button>
+
+          <button
+            onClick={() => setActivePage("network")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "network"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "network" ? "text-black" : "text-[#D71921]"}>02</span>
+            <span>// Network Inspector</span>
+          </button>
+
+          <button
+            onClick={() => setActivePage("verifier")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "verifier"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "verifier" ? "text-black" : "text-[#D71921]"}>03</span>
+            <span>// Policy Studio</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

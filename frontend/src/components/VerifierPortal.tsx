@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Scale, Sparkles, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from "lucide-react";
+import { Scale, Sparkles, Check, AlertTriangle, X, ShieldCheck } from "lucide-react";
 
 interface VerifierPortalProps {
   policyPrompt: string;
@@ -32,91 +32,105 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
 }) => {
   const PRESETS = [
     {
-      title: "Scholarship grant",
-      prompt: "Applicant must be at least 18 years old, maintain bank balance above 50000, annual income under 800000, and academic score above 8.2 CGPA.",
+      title: "Scholarship Grant",
+      prompt:
+        "Applicant must be at least 18 years old, maintain bank balance above 50000, annual income under 800000, and academic score above 8.2 CGPA.",
     },
     {
-      title: "Housing subsidy",
-      prompt: "Citizen must be at least 21 years old, family annual income under 350000, and liquid savings above 25000.",
+      title: "Housing Subsidy",
+      prompt:
+        "Citizen must be at least 21 years old, family annual income under 350000, and liquid savings above 25000.",
     },
     {
-      title: "Founder permit",
-      prompt: "Founder must be at least 21 years old, liquid assets above 250000, and academic score above 7.5 CGPA.",
+      title: "Founder Permit",
+      prompt:
+        "Founder must be at least 21 years old, liquid assets above 250000, and academic score above 7.5 CGPA.",
     },
   ];
 
   return (
-    <div className="rounded-2xl p-6 flex flex-col h-full bg-[#181818] border border-[#313131] transition-weighted">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#313131] mb-5">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#272727] border border-[#313131] flex items-center justify-center text-violet-400">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start space-x-3.5">
+          <div className="w-9 h-9 bg-[#111111] border border-[#262626] flex items-center justify-center text-white shrink-0">
             <Scale className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="title-card text-white flex items-center gap-2">
-              Policy studio
-              <span className="text-xs px-2 py-0.5 rounded-md bg-[#272727] text-zinc-300 font-mono">
-                verifier portal
+            <div className="flex items-center space-x-2">
+              <h2 className="text-base font-bold tracking-tight text-white uppercase font-sans">
+                Policy Studio & Verifier
+              </h2>
+              <span className="text-[11px] font-mono px-2 py-0.5 bg-[#171717] border border-[#262626] text-zinc-400 uppercase">
+                Scope 901
               </span>
-            </h2>
-            <p className="caption-meta text-zinc-400 mt-0.5">
-              Rule compilation and zero knowledge compliance registry
+            </div>
+            <p className="text-xs text-zinc-400 mt-1 font-sans">
+              Compile statutory rules into quantized mathematical constraints and verify client proofs.
             </p>
           </div>
         </div>
 
-        <span className="text-xs font-mono text-zinc-400 px-2.5 py-1 rounded-md bg-[#1F1F1F] border border-[#313131]">
-          Scope 901
-        </span>
-      </div>
-
-      {/* Preset Chips */}
-      <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1 text-xs">
-        {PRESETS.map((p, idx) => (
-          <button
-            key={idx}
-            onClick={() => onPolicyChange(p.prompt)}
-            className="px-3 py-1.5 rounded-lg bg-[#1F1F1F] hover:bg-[#272727] border border-[#313131] text-zinc-300 whitespace-nowrap transition-colors"
-          >
-            {p.title}
-          </button>
-        ))}
+        {/* Preset Chips */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {PRESETS.map((p, idx) => (
+            <button
+              key={idx}
+              onClick={() => onPolicyChange(p.prompt)}
+              className="px-3 py-1.5 bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-zinc-400 text-[11px] font-mono text-zinc-300 uppercase tracking-wider transition-colors rounded-none"
+            >
+              {p.title}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Natural Language Policy Input */}
-      <div className="space-y-2 mb-4">
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="font-mono text-xs text-zinc-400 uppercase tracking-wider">
+            // Natural Language Eligibility Rule
+          </label>
+          <span className="text-[10px] font-mono text-zinc-500 uppercase">
+            Quantized Granularity: ₹25,000 Step
+          </span>
+        </div>
+
         <div className="relative">
           <textarea
             value={policyPrompt}
             onChange={(e) => onPolicyChange(e.target.value)}
             rows={3}
             placeholder="Type statutory eligibility rule in plain English..."
-            className="w-full bg-[#131209] border border-[#313131] rounded-xl p-3.5 text-xs text-zinc-200 placeholder-zinc-500 font-sans focus:outline-none focus:border-violet-500 transition-colors resize-none leading-relaxed"
+            className="w-full bg-black border border-[#262626] focus:border-white p-4 font-mono text-xs text-white placeholder-zinc-600 focus:outline-none transition-colors resize-none rounded-none leading-relaxed"
           />
-          <button
-            onClick={onCompilePolicy}
-            disabled={isCompiling}
-            className="absolute right-2.5 bottom-2.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium flex items-center space-x-1.5 shadow transition-all disabled:opacity-50 active:scale-[0.98]"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>{isCompiling ? "Compiling" : "Compile policy"}</span>
-          </button>
+
+          <div className="mt-3 flex justify-end">
+            <button
+              onClick={onCompilePolicy}
+              disabled={isCompiling}
+              className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black border border-white font-mono text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all rounded-none disabled:opacity-50 active:scale-[0.98]"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-black" />
+              <span>{isCompiling ? "Compiling Rule..." : "Compile Policy"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Quantized Mathematical Receipt */}
       {symbolicReceipt.length > 0 && (
-        <div className="mb-4 p-4 rounded-xl bg-[#1F1F1F] border border-[#313131]">
-          <div className="flex items-center justify-between mb-2 text-xs font-mono text-zinc-400">
-            <span>Quantized rule receipt</span>
-            <span className="text-emerald-400">Quantized step 25000</span>
+        <div className="bg-[#0A0A0A] border border-[#262626] p-5 rounded-none font-mono text-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-400 mb-3">
+            <span className="uppercase tracking-wider text-[11px]">// Quantized Rule Receipt</span>
+            <span className="text-emerald-400 text-[10px] uppercase">Enforcing Rounding Guard</span>
           </div>
-          <div className="space-y-1.5 text-xs font-mono text-zinc-300">
+
+          <div className="space-y-2">
             {symbolicReceipt.map((line, idx) => (
-              <div key={idx} className="flex items-center space-x-2">
-                <span className="text-violet-400">•</span>
-                <span>{line}</span>
+              <div key={idx} className="flex items-start space-x-2 text-zinc-300">
+                <span className="text-zinc-600 select-none">[0{idx + 1}]</span>
+                <span className="leading-relaxed">{line}</span>
               </div>
             ))}
           </div>
@@ -124,76 +138,83 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
       )}
 
       {/* Verification Status Alert Banner */}
-      <div className="mb-4">
+      <div>
         {verificationResult ? (
           verificationResult.verified ? (
-            <div className="p-4 rounded-xl bg-[#1F1F1F] border border-emerald-500/70 text-emerald-300 flex items-start space-x-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
-              <div>
-                <span className="font-semibold text-sm block text-emerald-400">
-                  Compliance confirmed: Eligible
+            <div className="bg-[#0A0A0A] border-l-2 border-emerald-400 border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+              <div className="flex items-center space-x-2 text-emerald-400">
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span className="font-bold uppercase tracking-wider text-sm">
+                  [PASS] Compliance Verified: Eligible
                 </span>
-                <p className="text-xs text-zinc-300 mt-0.5">
-                  The cryptographic zero knowledge proof validates age, financial, and merit constraints.
-                </p>
-                <div className="mt-2 text-xs font-mono text-emerald-400/90 break-all bg-[#131209] p-2 rounded-lg border border-[#313131]">
-                  Nullifier: {verificationResult.nullifierHash}
-                </div>
               </div>
+              <p className="text-zinc-300 font-sans text-xs">
+                Zero knowledge proof cryptographically satisfies all statutory criteria. Personal data was neither revealed nor transmitted.
+              </p>
+              {verificationResult.nullifierHash && (
+                <div className="mt-2 p-3 bg-black border border-[#262626] text-zinc-300 break-all text-[11px]">
+                  Nullifier Lock: {verificationResult.nullifierHash}
+                </div>
+              )}
             </div>
           ) : verificationResult.sybilBlocked ? (
-            <div className="p-4 rounded-xl bg-[#1F1F1F] border border-amber-500/70 text-amber-300 flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-              <div>
-                <span className="font-semibold text-sm block text-amber-400">
-                  Sybil duplicate claim blocked
+            <div className="bg-[#0A0A0A] border-l-2 border-amber-400 border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+              <div className="flex items-center space-x-2 text-amber-400">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span className="font-bold uppercase tracking-wider text-sm">
+                  [BLOCKED] Sybil Duplicate Claim Detected
                 </span>
-                <p className="text-xs text-zinc-300 mt-0.5">
-                  This citizen identity already claimed benefits under campaign scope 901. Database primary key lock blocked double claim.
-                </p>
               </div>
+              <p className="text-zinc-300 font-sans text-xs">
+                This citizen identity was already committed under campaign Scope 901. Database primary key lock blocked duplicate redemption.
+              </p>
             </div>
           ) : (
-            <div className="p-4 rounded-xl bg-[#1F1F1F] border border-rose-500/70 text-rose-300 flex items-start space-x-3">
-              <XCircle className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
-              <div>
-                <span className="font-semibold text-sm block text-rose-400">
-                  Verification rejected: Invalid proof
+            <div className="bg-[#0A0A0A] border-l-2 border-[#D71921] border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+              <div className="flex items-center space-x-2 text-[#D71921]">
+                <X className="w-4 h-4 text-[#D71921]" />
+                <span className="font-bold uppercase tracking-wider text-sm">
+                  [FAILED] Verification Rejected: Invalid Proof
                 </span>
-                <p className="text-xs text-zinc-300 mt-0.5">
-                  {verificationResult.error || "Cryptographic Groth16 pairing check failed. Proof signature invalid."}
-                </p>
               </div>
+              <p className="text-zinc-300 font-sans text-xs">
+                {verificationResult.error || "Cryptographic Groth16 pairing check failed. Proof witness or signature invalid."}
+              </p>
             </div>
           )
         ) : (
-          <div className="p-4 rounded-xl bg-[#1F1F1F] border border-[#313131] text-zinc-500 text-xs flex items-center space-x-2 justify-center">
+          <div className="bg-[#0A0A0A] border border-[#262626] p-4 rounded-none text-zinc-500 font-mono text-xs flex items-center justify-center space-x-2">
             <ShieldCheck className="w-4 h-4 opacity-40" />
-            <span>Awaiting proof submission from network inspector</span>
+            <span className="uppercase text-[11px]">Awaiting Proof Submission From [ 02 // NETWORK INSPECTOR ]</span>
           </div>
         )}
       </div>
 
       {/* Anonymous Nullifier Ledger */}
-      <div className="flex-1 bg-[#131209] rounded-xl border border-[#313131] p-4 flex flex-col font-mono text-xs overflow-hidden">
-        <div className="flex items-center justify-between pb-2.5 border-b border-[#272727] text-zinc-500 text-xs">
-          <span>Committed nullifier registry</span>
-          <span>{nullifierLedger.length} registered</span>
+      <div className="bg-[#0A0A0A] border border-[#262626] p-5 rounded-none font-mono text-xs space-y-3">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-400">
+          <span className="uppercase text-[11px] tracking-wider">// Committed Nullifier Ledger</span>
+          <span className="text-zinc-500">{nullifierLedger.length} registered</span>
         </div>
-        <div className="flex-1 overflow-y-auto pt-2.5 space-y-1.5">
+
+        <div className="bg-black border border-[#1A1A1A] p-3 max-h-[180px] overflow-y-auto space-y-2">
           {nullifierLedger.length > 0 ? (
             nullifierLedger.map((row, idx) => (
               <div
                 key={idx}
-                className="p-2 rounded-lg bg-[#1F1F1F] border border-[#313131] flex items-center justify-between text-xs"
+                className="p-2.5 bg-[#0D0D0D] border border-[#222222] flex items-center justify-between text-xs"
               >
-                <span className="text-zinc-300 truncate max-w-[200px]">{row.nullifier}</span>
-                <span className="text-emerald-400 font-medium">Committed</span>
+                <span className="text-zinc-300 truncate max-w-[260px] font-mono">
+                  {row.nullifier}
+                </span>
+                <span className="text-emerald-400 font-mono text-[10px] uppercase">
+                  Committed ({row.timestamp})
+                </span>
               </div>
             ))
           ) : (
-            <div className="text-center text-zinc-600 py-8 text-xs">
-              No nullifiers committed yet in current session
+            <div className="text-center text-zinc-600 py-6 text-[11px] uppercase tracking-wider">
+              No Nullifiers Committed in Current Session
             </div>
           )}
         </div>

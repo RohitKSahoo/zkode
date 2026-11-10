@@ -7,12 +7,24 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
+      },
       colors: {
-        background: "#09090b",
-        foreground: "#fafafa",
+        background: "#000000",
+        foreground: "#FAFAFA",
+        nothing: {
+          red: "#D71921",
+          black: "#000000",
+          card: "#0A0A0A",
+          surface: "#111111",
+          border: "#262626",
+          borderHover: "#404040",
+          muted: "#737373",
+        },
       },
     },
   },
   plugins: [],
 };
-
