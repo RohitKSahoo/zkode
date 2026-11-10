@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@barba/core": "^2.10.3",
     "circomlibjs": "^0.1.7",
     "clsx": "^2.1.1",
     "framer-motion": "^11.2.10",
@@ -29,4 +30,3 @@
     "typescript": "^5.4.5"
   }
 }
-

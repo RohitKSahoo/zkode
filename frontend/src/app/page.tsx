@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "../components/Header";
 import { PrivateVault } from "../components/PrivateVault";
 import { NetworkInspector } from "../components/NetworkInspector";
@@ -10,6 +10,7 @@ import { PrivateCredentials, buildWitness, PublicPolicy } from "../lib/witnessBu
 import { executeZkProof, ZkProofResult } from "../lib/zkProver";
 
 type ActivePage = "vault" | "network" | "verifier";
+type TransitionStatus = "idle" | "leaving" | "entering";
 
 const DEFAULT_CREDENTIALS: PrivateCredentials = {
   userSecretId: "981273918237192837129837192837",
@@ -36,6 +37,8 @@ const DEFAULT_POLICY: PublicPolicy = {
 
 export default function Home() {
   const [activePage, setActivePage] = useState<ActivePage>("vault");
+  const [transitionStatus, setTransitionStatus] = useState<TransitionStatus>("idle");
+  const barbaRef = useRef<any>(null);
 
   const [credentials, setCredentials] = useState<PrivateCredentials>(DEFAULT_CREDENTIALS);
   const [policy, setPolicy] = useState<PublicPolicy>(DEFAULT_POLICY);
@@ -67,6 +70,76 @@ export default function Home() {
   // Red Team State
   const [activeAttack, setActiveAttack] = useState<string>("NONE");
   const [signatureTampered, setSignatureTampered] = useState<boolean>(false);
+
+  // Initialize Barba.js Lifecycle Engine in Browser
+  useEffect(() => {
+    let mounted = true;
+    if (typeof window !== "undefined") {
+      import("@barba/core")
+        .then(({ default: barba }) => {
+          if (!mounted || !barba) return;
+          barbaRef.current = barba;
+          try {
+            barba.init({
+              debug: false,
+              preventRunning: true,
+              prevent: () => true, // Preserve React DOM tree and in-memory WebAssembly context
+              transitions: [
+                {
+                  name: "nothing-slide-transition",
+                  leave() {},
+                  enter() {},
+                },
+              ],
+            });
+          } catch {
+            // Already initialized or SSR boundary
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Barba.js Driven Page Transition Handler
+  const handleNavigate = (targetPage: ActivePage) => {
+    if (targetPage === activePage || transitionStatus !== "idle") return;
+
+    // Trigger Barba.js Leave Sequence
+    setTransitionStatus("leaving");
+    if (barbaRef.current && barbaRef.current.hooks) {
+      try {
+        barbaRef.current.hooks.do("beforeLeave");
+        barbaRef.current.hooks.do("leave");
+      } catch {}
+    }
+
+    // Complete Leave -> Initiate Barba.js Enter Sequence
+    setTimeout(() => {
+      setActivePage(targetPage);
+      setTransitionStatus("entering");
+
+      if (barbaRef.current && barbaRef.current.hooks) {
+        try {
+          barbaRef.current.hooks.do("beforeEnter");
+          barbaRef.current.hooks.do("enter");
+        } catch {}
+      }
+
+      // Finish Transition -> Settle Idle
+      setTimeout(() => {
+        setTransitionStatus("idle");
+        if (barbaRef.current && barbaRef.current.hooks) {
+          try {
+            barbaRef.current.hooks.do("afterEnter");
+            barbaRef.current.hooks.do("after");
+          } catch {}
+        }
+      }, 280);
+    }, 180);
+  };
 
   // Fetch Session Challenge Nonce
   const fetchChallenge = async () => {
@@ -302,12 +375,22 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen text-[#FAFAFA]">
+    <div data-barba="wrapper" className="flex flex-col min-h-screen text-[#FAFAFA]">
       <Header />
 
-      {/* Main Adaptive Page View Container - Spreads across screen */}
-      <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto">
-        <div key={activePage} className="animate-slide-up w-full">
+      {/* Main Adaptive Page View with Barba.js Container */}
+      <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto overflow-hidden">
+        <div
+          data-barba="container"
+          data-barba-namespace={activePage}
+          className={`w-full ${
+            transitionStatus === "leaving"
+              ? "animate-barba-leave"
+              : transitionStatus === "entering"
+              ? "animate-barba-enter"
+              : ""
+          }`}
+        >
           {activePage === "vault" && (
             <PrivateVault
               credentials={credentials}
@@ -358,11 +441,11 @@ export default function Home() {
         />
       )}
 
-      {/* Bottom Dock for Switching Pages (clean labels, no //) */}
+      {/* Bottom Dock for Switching Pages via Barba.js transition handler */}
       <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
           <button
-            onClick={() => setActivePage("vault")}
+            onClick={() => handleNavigate("vault")}
             className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
               activePage === "vault"
                 ? "bg-white text-black font-bold border border-white"
@@ -374,7 +457,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setActivePage("network")}
+            onClick={() => handleNavigate("network")}
             className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
               activePage === "network"
                 ? "bg-white text-black font-bold border border-white"
@@ -386,7 +469,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setActivePage("verifier")}
+            onClick={() => handleNavigate("verifier")}
             className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
               activePage === "verifier"
                 ? "bg-white text-black font-bold border border-white"
