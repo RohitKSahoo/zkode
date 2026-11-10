@@ -63,8 +63,9 @@ def get_llm():
     if api_key and not api_key.startswith("gsk_your"):
         try:
             from langchain_groq import ChatGroq
+            model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
             return ChatGroq(
-                model_name="llama-3.3-70b-versatile",
+                model_name=model_name,
                 temperature=0.1,
                 groq_api_key=api_key
             )
