@@ -6,6 +6,7 @@ import { PrivateVault } from "../components/PrivateVault";
 import { NetworkInspector } from "../components/NetworkInspector";
 import { VerifierPortal } from "../components/VerifierPortal";
 import { RedTeamAttackBar } from "../components/RedTeamAttackBar";
+import { GlassPrismHero, type GlassPrismHeroHandle } from "../components/GlassPrismHero";
 import { PrivateCredentials, buildWitness, PublicPolicy } from "../lib/witnessBuilder";
 import { executeZkProof, ZkProofResult } from "../lib/zkProver";
 
@@ -39,6 +40,13 @@ export default function Home() {
   const [activePage, setActivePage] = useState<ActivePage>("vault");
   const [transitionStatus, setTransitionStatus] = useState<TransitionStatus>("idle");
   const barbaRef = useRef<any>(null);
+  const heroRef = useRef<GlassPrismHeroHandle>(null);
+  const appWorkspaceRef = useRef<HTMLDivElement>(null);
+
+  const scrollToApp = (page?: ActivePage) => {
+    if (page) setActivePage(page);
+    appWorkspaceRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const [credentials, setCredentials] = useState<PrivateCredentials>(DEFAULT_CREDENTIALS);
   const [policy, setPolicy] = useState<PublicPolicy>(DEFAULT_POLICY);
@@ -105,6 +113,12 @@ export default function Home() {
 
   // Barba.js Driven Page Transition Handler
   const handleNavigate = (targetPage: ActivePage) => {
+    if (appWorkspaceRef.current) {
+      const rect = appWorkspaceRef.current.getBoundingClientRect();
+      if (rect.top > 120) {
+        appWorkspaceRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }
     if (targetPage === activePage || transitionStatus !== "idle") return;
 
     // Trigger Barba.js Leave Sequence
@@ -215,7 +229,7 @@ export default function Home() {
           }),
         });
       }
-      if (res.ok) {
+      if (res && res.ok) {
         const data = await res.json();
         setCredentials({
           ...data.credential,
@@ -412,111 +426,148 @@ export default function Home() {
 
   return (
     <div data-barba="wrapper" className="flex flex-col min-h-screen text-[#FAFAFA]">
-      <Header />
+      {/* 1. WebGL Glass Prism Hero Section */}
+      <GlassPrismHero
+        ref={heroRef}
+        headline="Proof in a new light."
+        eyebrow="zkode // Zero-Knowledge Selective Disclosure"
+        description="Verify age, income ceilings, and liquid reserves with 0 Bytes of raw PII exposed. Real-time client-side Groth16 proving on BN254 with live LangGraph AI statutory compilation."
+        accent="#D71921"
+        fontFamily="var(--font-sans), Geist, ui-sans-serif, system-ui, sans-serif"
+        scrollRotate={true}
+        scrollHint={{ rotate: "Scroll to rotate & explore", back: "Scroll up to light" }}
+        actions={
+          <div className="flex flex-wrap items-center justify-center gap-3 font-mono">
+            <button
+              onClick={() => scrollToApp("vault")}
+              className="inline-flex h-11 items-center rounded-none px-6 text-[13px] tracking-wider uppercase bg-white text-black font-bold outline-none transition-transform active:scale-[.97] hover:bg-zinc-200"
+            >
+              Launch Vault [01]
+            </button>
+            <button
+              onClick={() => scrollToApp("verifier")}
+              className="inline-flex h-11 items-center rounded-none px-6 text-[13px] tracking-wider uppercase border border-[#333333] bg-[#111111]/80 text-[#FAFAFA] backdrop-blur-md outline-none transition-transform active:scale-[.97] hover:bg-[#1A1A1A] hover:border-zinc-400"
+            >
+              Policy Studio [03]
+            </button>
+            <button
+              onClick={() => scrollToApp("network")}
+              className="inline-flex h-11 items-center rounded-none px-5 text-[13px] tracking-wider uppercase border border-[#333333] bg-[#111111]/80 text-[#FAFAFA] backdrop-blur-md outline-none transition-transform active:scale-[.97] hover:bg-[#1A1A1A] hover:border-zinc-400"
+            >
+              0 Bytes Inspector [02]
+            </button>
+          </div>
+        }
+      />
 
-      {/* Main Adaptive Page View with Barba.js Container */}
-      <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto overflow-hidden">
-        <div
-          data-barba="container"
-          data-barba-namespace={activePage}
-          className={`w-full ${
-            transitionStatus === "leaving"
-              ? "animate-barba-leave"
-              : transitionStatus === "entering"
-              ? "animate-barba-enter"
-              : ""
-          }`}
-        >
-          {activePage === "vault" && (
-            <PrivateVault
-              credentials={credentials}
-              isProving={isProving}
-              proverTimeMs={proverTimeMs}
-              onGenerateProof={handleGenerateProof}
-              onMintNewDemo={handleMintNewDemo}
-              signatureTampered={signatureTampered}
-            />
-          )}
+      {/* 2. Primary Workspace & Interactive Protocol Suite */}
+      <div id="app-workspace" ref={appWorkspaceRef} className="relative z-10 w-full min-h-screen bg-black/95 border-t border-[#1F1F1F]">
+        <Header />
 
-          {activePage === "network" && (
-            <NetworkInspector
-              proofData={proofData}
-              nullifierHash={nullifierHash}
-              sessionNonce={sessionNonce}
-              nonceTtl={nonceTtl}
-              onSubmitProof={handleSubmitProof}
-              isSubmitting={isSubmitting}
-              canSubmit={!!proofData && !isProving}
-            />
-          )}
-
-          {activePage === "verifier" && (
-            <VerifierPortal
-              policyPrompt={policyPrompt}
-              onPolicyChange={setPolicyPrompt}
-              onCompilePolicy={handleCompilePolicy}
-              isCompiling={isCompiling}
-              compiledPolicy={policy as any}
-              symbolicReceipt={symbolicReceipt}
-              verificationResult={verificationResult}
-              nullifierLedger={nullifierLedger}
-            />
-          )}
-        </div>
-      </main>
-
-      {/* Expandable Footer Pill Menu - Visible ONLY in the Verifier Page */}
-      {activePage === "verifier" && (
-        <RedTeamAttackBar
-          onInjectFakeBalance={handleInjectFakeBalance}
-          onReplayProof={handleReplayProof}
-          onProbeUnquantized={handleProbeUnquantized}
-          onTamperWire={handleTamperWire}
-          onReset={handleReset}
-          activeAttack={activeAttack}
-        />
-      )}
-
-      {/* Bottom Dock for Switching Pages via Barba.js transition handler */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-        <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
-          <button
-            onClick={() => handleNavigate("vault")}
-            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
-              activePage === "vault"
-                ? "bg-white text-black font-bold border border-white"
-                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+        {/* Main Adaptive Page View with Barba.js Container */}
+        <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto overflow-hidden">
+          <div
+            data-barba="container"
+            data-barba-namespace={activePage}
+            className={`w-full ${
+              transitionStatus === "leaving"
+                ? "animate-barba-leave"
+                : transitionStatus === "entering"
+                ? "animate-barba-enter"
+                : ""
             }`}
           >
-            <span className={activePage === "vault" ? "text-black" : "text-[#D71921]"}>01</span>
-            <span>Private Vault</span>
-          </button>
+            {activePage === "vault" && (
+              <PrivateVault
+                credentials={credentials}
+                isProving={isProving}
+                proverTimeMs={proverTimeMs}
+                onGenerateProof={handleGenerateProof}
+                onMintNewDemo={handleMintNewDemo}
+                signatureTampered={signatureTampered}
+              />
+            )}
 
-          <button
-            onClick={() => handleNavigate("network")}
-            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
-              activePage === "network"
-                ? "bg-white text-black font-bold border border-white"
-                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
-            }`}
-          >
-            <span className={activePage === "network" ? "text-black" : "text-[#D71921]"}>02</span>
-            <span>Network Inspector</span>
-          </button>
+            {activePage === "network" && (
+              <NetworkInspector
+                proofData={proofData}
+                nullifierHash={nullifierHash}
+                sessionNonce={sessionNonce}
+                nonceTtl={nonceTtl}
+                onSubmitProof={handleSubmitProof}
+                isSubmitting={isSubmitting}
+                canSubmit={!!proofData && !isProving}
+              />
+            )}
 
-          <button
-            onClick={() => handleNavigate("verifier")}
-            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
-              activePage === "verifier"
-                ? "bg-white text-black font-bold border border-white"
-                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
-            }`}
-          >
-            <span className={activePage === "verifier" ? "text-black" : "text-[#D71921]"}>03</span>
-            <span>Policy Studio</span>
-          </button>
-        </div>
-      </nav>
+            {activePage === "verifier" && (
+              <VerifierPortal
+                policyPrompt={policyPrompt}
+                onPolicyChange={setPolicyPrompt}
+                onCompilePolicy={handleCompilePolicy}
+                isCompiling={isCompiling}
+                compiledPolicy={policy as any}
+                symbolicReceipt={symbolicReceipt}
+                verificationResult={verificationResult}
+                nullifierLedger={nullifierLedger}
+              />
+            )}
+          </div>
+        </main>
+
+        {/* Expandable Footer Pill Menu - Visible ONLY in the Verifier Page */}
+        {activePage === "verifier" && (
+          <RedTeamAttackBar
+            onInjectFakeBalance={handleInjectFakeBalance}
+            onReplayProof={handleReplayProof}
+            onProbeUnquantized={handleProbeUnquantized}
+            onTamperWire={handleTamperWire}
+            onReset={handleReset}
+            activeAttack={activeAttack}
+          />
+        )}
+
+        {/* Bottom Dock for Switching Pages via Barba.js transition handler */}
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
+            <button
+              onClick={() => handleNavigate("vault")}
+              className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+                activePage === "vault"
+                  ? "bg-white text-black font-bold border border-white"
+                  : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+              }`}
+            >
+              <span className={activePage === "vault" ? "text-black" : "text-[#D71921]"}>01</span>
+              <span>Private Vault</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate("network")}
+              className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+                activePage === "network"
+                  ? "bg-white text-black font-bold border border-white"
+                  : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+              }`}
+            >
+              <span className={activePage === "network" ? "text-black" : "text-[#D71921]"}>02</span>
+              <span>Network Inspector</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigate("verifier")}
+              className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+                activePage === "verifier"
+                  ? "bg-white text-black font-bold border border-white"
+                  : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+              }`}
+            >
+              <span className={activePage === "verifier" ? "text-black" : "text-[#D71921]"}>03</span>
+              <span>Policy Studio</span>
+            </button>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }
