@@ -14,6 +14,12 @@ module.exports = {
       colors: {
         background: "#000000",
         foreground: "#FAFAFA",
+        border: "#262626",
+        muted: {
+          DEFAULT: "#141414",
+          foreground: "#A1A1AA",
+        },
+        ring: "#D71921",
         nothing: {
           red: "#D71921",
           black: "#000000",
