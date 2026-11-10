@@ -36,6 +36,17 @@ const DEFAULT_POLICY: PublicPolicy = {
   serviceScopeId: "901",
 };
 
+const getBackendUrl = () => {
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+    return process.env.NEXT_PUBLIC_BACKEND_URL.replace(/\/$/, "");
+  }
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    return "http://localhost:8000";
+  }
+  return "https://zkode.onrender.com";
+};
+
+
 export default function Home() {
   const [activePage, setActivePage] = useState<ActivePage>("vault");
   const [transitionStatus, setTransitionStatus] = useState<TransitionStatus>("idle");
@@ -158,7 +169,7 @@ export default function Home() {
   // Fetch Session Challenge Nonce
   const fetchChallenge = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/challenge?scope_id=" + policy.serviceScopeId);
+      const res = await fetch(`${getBackendUrl()}/api/challenge?scope_id=` + policy.serviceScopeId);
       if (res.ok) {
         const data = await res.json();
         setSessionNonce(data.sessionNonce);
@@ -174,7 +185,7 @@ export default function Home() {
   // Fetch Live Nullifier Ledger
   const fetchLedger = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/ledger");
+      const res = await fetch(`${getBackendUrl()}/api/ledger`);
       if (res.ok) {
         const data = await res.json();
         if (data.ledger) {
@@ -202,7 +213,7 @@ export default function Home() {
   // Mint Sample Credentials
   const handleMintNewDemo = async () => {
     try {
-      let res = await fetch("http://localhost:8000/api/crypto/mint", {
+      let res = await fetch(`${getBackendUrl()}/api/crypto/mint`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -249,7 +260,7 @@ export default function Home() {
   const handleCompilePolicy = async () => {
     setIsCompiling(true);
     try {
-      const res = await fetch("http://localhost:8000/api/policy/compile", {
+      const res = await fetch(`${getBackendUrl()}/api/policy/compile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: policyPrompt, service_scope_id: policy.serviceScopeId }),
@@ -305,7 +316,7 @@ export default function Home() {
     if (!proofData || !nullifierHash) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/api/verify", {
+      const res = await fetch(`${getBackendUrl()}/api/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
