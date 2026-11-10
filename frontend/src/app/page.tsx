@@ -215,13 +215,6 @@ export default function Home() {
           }),
         });
       }
-          birthTimestamp: "20030416",
-          actualBalance: "84500",
-          actualIncome: "350000",
-          creditOrCgpaScore: "860",
-          expirationTimestamp: "20261115",
-        }),
-      });
       if (res.ok) {
         const data = await res.json();
         setCredentials({
