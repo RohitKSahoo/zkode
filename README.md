@@ -91,3 +91,4 @@ Full technical documentation is available in [`docs/`](docs/):
 
 ## ⚖️ License
 MIT License.
+
