@@ -12,3 +12,7 @@ declare module "circomlibjs" {
   export function buildBabyjub(): Promise<any>;
 }
 
+declare module "@barba/core" {
+  const barba: any;
+  export default barba;
+}

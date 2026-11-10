@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Radio, Shield, Download, Clock, Copy, Check } from "lucide-react";
+import { Radio, ShieldCheck, Download, Clock, Copy, Check } from "lucide-react";
 import { ZkProofResult } from "../lib/zkProver";
 
 interface NetworkInspectorProps {
@@ -41,49 +41,52 @@ export const NetworkInspector: React.FC<NetworkInspectorProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `zkode_packet_${Date.now()}.json`;
+    a.download = `zkode_payload_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="rounded-2xl p-6 flex flex-col h-full bg-[#181818] border border-[#313131] transition-weighted">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#313131] mb-5">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#272727] border border-[#313131] flex items-center justify-center text-cyan-400">
+    <div className="w-full space-y-6">
+      {/* Page Header */}
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start space-x-3.5">
+          <div className="w-9 h-9 bg-[#111111] border border-[#262626] flex items-center justify-center text-white shrink-0">
             <Radio className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="title-card text-white flex items-center gap-2">
-              Network inspector
-              <span className="text-xs px-2 py-0.5 rounded-md bg-[#272727] text-zinc-300 font-mono">
-                public wire
+            <div className="flex items-center space-x-2">
+              <h2 className="text-base font-bold tracking-tight text-white uppercase font-sans">
+                Network Inspector
+              </h2>
+              <span className="text-[11px] font-mono px-2 py-0.5 bg-[#171717] border border-[#262626] text-zinc-400 uppercase">
+                Public Wire
               </span>
-            </h2>
-            <p className="caption-meta text-zinc-400 mt-0.5">
-              Live audit of bytes traversing the network connection
+            </div>
+            <p className="text-xs text-zinc-400 mt-1 font-sans">
+              Live audit of bytes traversing the public transport layer. Validates zero data leakage.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1 bg-[#1F1F1F] p-1 rounded-lg border border-[#313131]">
+        {/* View Toggle */}
+        <div className="flex items-center space-x-1 border border-[#262626] p-1 bg-black rounded-none self-start sm:self-auto font-mono text-xs">
           <button
             onClick={() => setActiveTab("json")}
-            className={`text-xs font-mono px-2.5 py-1 rounded-md transition-colors ${
+            className={`px-4 py-1.5 uppercase rounded-none transition-colors ${
               activeTab === "json"
-                ? "bg-[#272727] text-cyan-300 font-medium"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-white text-black font-bold"
+                : "text-zinc-400 hover:text-white"
             }`}
           >
             JSON
           </button>
           <button
             onClick={() => setActiveTab("hex")}
-            className={`text-xs font-mono px-2.5 py-1 rounded-md transition-colors ${
+            className={`px-4 py-1.5 uppercase rounded-none transition-colors ${
               activeTab === "hex"
-                ? "bg-[#272727] text-cyan-300 font-medium"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-white text-black font-bold"
+                : "text-zinc-400 hover:text-white"
             }`}
           >
             HEX
@@ -91,140 +94,144 @@ export const NetworkInspector: React.FC<NetworkInspectorProps> = ({
         </div>
       </div>
 
-      {/* 0 Bytes PII Indicator Banner (Flat Surface, No Gradient) */}
-      <div className="mb-4 p-4 rounded-xl bg-[#1F1F1F] border border-[#313131] flex items-center justify-between">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#272727] border border-[#313131] flex items-center justify-center text-emerald-400">
-            <Shield className="w-5 h-5 text-emerald-400" />
+      {/* Stark 0 Bytes Exposure Metric Banner */}
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-black border border-[#262626] flex items-center justify-center text-emerald-400 shrink-0">
+            <ShieldCheck className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold tracking-tight text-emerald-400">
-                0 bytes
+            <div className="flex items-baseline space-x-3">
+              <span className="font-mono text-3xl font-bold tracking-tight text-emerald-400">
+                0 BYTES
               </span>
-              <span className="text-sm font-semibold text-white">
-                Personal identity exposure
+              <span className="font-mono text-xs text-white uppercase tracking-wider">
+                Personal Identity Exposure
               </span>
             </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Names, birthdates, and real account balances never cross the wire
+            <p className="text-xs text-zinc-400 mt-1 font-sans">
+              Names, raw bank balances, Aadhaar IDs, and birthdates are mathematically absent from the wire payload.
             </p>
           </div>
         </div>
 
-        <div className="text-right font-mono text-xs text-zinc-400 hidden sm:block">
-          <div>Payload: <span className="text-zinc-200 font-medium">256 bytes</span></div>
-          <div>Curve: <span className="text-zinc-400">alt bn128</span></div>
+        <div className="font-mono text-xs text-zinc-400 flex flex-wrap sm:flex-col gap-4 sm:gap-1 sm:text-right border-t sm:border-t-0 sm:border-l border-[#1A1A1A] pt-4 sm:pt-0 sm:pl-8">
+          <div>PAYLOAD SIZE: <span className="text-white font-bold">256 BYTES</span></div>
+          <div>CURVE: <span className="text-zinc-300 font-semibold">ALT_BN128</span></div>
+          <div>CIRCUIT CONSTRAINTS: <span className="text-zinc-300 font-semibold">8,493 R1CS</span></div>
         </div>
       </div>
 
-      {/* Wire Packet Inspector Panel */}
-      <div className="flex-1 bg-[#131209] rounded-xl border border-[#313131] p-4 flex flex-col font-mono text-xs overflow-hidden">
-        <div className="flex items-center justify-between pb-2.5 border-b border-[#272727] text-zinc-500 text-xs">
-          <span>Packet audit stream</span>
-          <div className="flex items-center space-x-3">
-            {proofData && (
-              <>
-                <button
-                  onClick={handleCopy}
-                  className="hover:text-zinc-300 flex items-center space-x-1 text-zinc-400"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? "Copied" : "Copy"}</span>
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="hover:text-zinc-300 flex items-center space-x-1 text-zinc-400"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download json</span>
-                </button>
-              </>
-            )}
-          </div>
+      {/* Wire Stream Terminal Panel */}
+      <div className="bg-[#0A0A0A] border border-[#262626] rounded-none p-6 flex flex-col font-mono text-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-500">
+          <span className="uppercase text-[11px] tracking-wider text-zinc-400">
+            // Packet Audit Stream (Port 8000 Transport)
+          </span>
+
+          {proofData && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleCopy}
+                className="px-3 py-1 bg-[#141414] hover:bg-[#222222] border border-[#262626] text-zinc-300 hover:text-white flex items-center space-x-1.5 transition-colors uppercase text-[10px]"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? "Copied" : "Copy"}</span>
+              </button>
+              <button
+                onClick={handleDownload}
+                className="px-3 py-1 bg-[#141414] hover:bg-[#222222] border border-[#262626] text-zinc-300 hover:text-white flex items-center space-x-1.5 transition-colors uppercase text-[10px]"
+              >
+                <Download className="w-3 h-3" />
+                <span>Download</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto pt-3 space-y-2 text-zinc-300">
+        {/* Content Box */}
+        <div className="bg-black border border-[#1A1A1A] p-5 min-h-[260px] max-h-[440px] overflow-y-auto">
           {proofData ? (
             activeTab === "json" ? (
-              <div className="space-y-2 text-xs">
+              <div className="space-y-4 text-xs leading-relaxed">
                 <div>
-                  <span className="text-cyan-400 block font-medium">// Groth16 curve point pi a</span>
-                  <div className="text-zinc-400 pl-2">
-                    [ "{proofData.proof.pi_a[0].slice(0, 24)}...", "{proofData.proof.pi_a[1].slice(0, 24)}..." ]
+                  <span className="text-zinc-500 block uppercase text-[10px]">// Groth16 G1 Point pi_a</span>
+                  <div className="text-zinc-300 pl-2">
+                    ["{proofData.proof.pi_a[0]}", "{proofData.proof.pi_a[1]}"]
                   </div>
                 </div>
+
                 <div>
-                  <span className="text-cyan-400 block font-medium">// Groth16 curve point pi b</span>
-                  <div className="text-zinc-400 pl-2">
-                    [ [ "{proofData.proof.pi_b[0][0].slice(0, 18)}...", "{proofData.proof.pi_b[0][1].slice(0, 18)}..." ], ... ]
+                  <span className="text-zinc-500 block uppercase text-[10px]">// Groth16 G2 Point pi_b</span>
+                  <div className="text-zinc-300 pl-2">
+                    [["{proofData.proof.pi_b[0][0].slice(0, 48)}...", "{proofData.proof.pi_b[0][1].slice(0, 48)}..."], ...]
                   </div>
                 </div>
+
                 <div>
-                  <span className="text-cyan-400 block font-medium">// Groth16 curve point pi c</span>
-                  <div className="text-zinc-400 pl-2">
-                    [ "{proofData.proof.pi_c[0].slice(0, 24)}...", "{proofData.proof.pi_c[1].slice(0, 24)}..." ]
+                  <span className="text-zinc-500 block uppercase text-[10px]">// Groth16 G1 Point pi_c</span>
+                  <div className="text-zinc-300 pl-2">
+                    ["{proofData.proof.pi_c[0]}", "{proofData.proof.pi_c[1]}"]
                   </div>
                 </div>
+
                 {nullifierHash && (
-                  <div className="pt-2 border-t border-[#272727]">
-                    <span className="text-emerald-400 block font-medium">// Anonymous nullifier hash</span>
-                    <span className="text-zinc-300 pl-2 break-all text-xs">
-                      {nullifierHash}
-                    </span>
+                  <div className="pt-3 border-t border-[#1F1F1F]">
+                    <span className="text-emerald-400 block uppercase text-[10px]">// Anonymous Nullifier Commit</span>
+                    <span className="text-white pl-2 break-all text-sm">{nullifierHash}</span>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-zinc-400 text-xs break-all leading-relaxed">
-                0x{proofData.proof.pi_a[0].slice(0, 32)}0041a7bc89d2e...
-                0x{proofData.proof.pi_b[0][0].slice(0, 32)}891048f72a...
-                0x{proofData.proof.pi_c[0].slice(0, 32)}77ef910283...
+              <div className="text-zinc-400 text-xs break-all leading-loose">
+                0x{proofData.proof.pi_a[0]}00ffb19a3c89...
+                0x{proofData.proof.pi_b[0][0]}77e192c019a...
+                0x{proofData.proof.pi_c[0]}99bc4510ffea...
               </div>
             )
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-600 text-center py-12">
-              <Shield className="w-8 h-8 mb-2 opacity-25" />
-              <p className="text-sm">Awaiting proof synthesis in private vault</p>
-              <p className="text-xs text-zinc-600 mt-1">Network remains idle until local verification finishes</p>
+            <div className="h-full flex flex-col items-center justify-center text-zinc-600 text-center py-16">
+              <Radio className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-xs uppercase tracking-wider font-mono">No Proof Synthesized in Vault</p>
+              <p className="text-[11px] text-zinc-600 mt-1 font-sans">
+                Navigate to [ 01 Private Vault ] and generate a zero knowledge proof first.
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Nonce Guard & Submission */}
-      <div className="mt-5 pt-4 border-t border-[#313131] space-y-3">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center space-x-1.5 text-zinc-400">
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
-            <span>Challenge nonce</span>
+      {/* Submission & Nonce Guard Panel */}
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="font-mono text-xs space-y-1">
+          <div className="flex items-center space-x-2 text-zinc-400">
+            <Clock className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="uppercase text-[11px]">Replay Challenge Nonce:</span>
+            <span className="text-white font-bold">{sessionNonce ? `${sessionNonce.slice(0, 18)}...` : "NONE"}</span>
           </div>
-          <span className="text-zinc-200 font-medium truncate max-w-[140px]">
-            {sessionNonce ? `${sessionNonce.slice(0, 12)}...` : "None"}
-          </span>
-          <span className="text-xs text-amber-400 bg-[#272727] px-2 py-0.5 rounded border border-[#313131]">
-            TTL {nonceTtl}s
-          </span>
+          <div className="text-[11px] text-zinc-500">
+            Active Nonce TTL: <span className="text-amber-400 font-bold">{nonceTtl}s remaining</span> (60-sec anti-replay rotation)
+          </div>
         </div>
 
         <button
           onClick={onSubmitProof}
           disabled={!canSubmit || isSubmitting}
-          className={`w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-weighted flex items-center justify-center space-x-2 border ${
+          className={`px-8 py-3.5 font-mono text-xs font-bold uppercase tracking-wider rounded-none border transition-all flex items-center justify-center space-x-2 ${
             !canSubmit || isSubmitting
-              ? "bg-[#272727] text-zinc-500 border-[#313131] cursor-not-allowed"
-              : "bg-cyan-500 hover:bg-cyan-400 text-black border-cyan-400 active:scale-[0.98]"
+              ? "bg-[#171717] text-zinc-600 border-[#262626] cursor-not-allowed"
+              : "bg-white hover:bg-zinc-200 text-black border-white active:scale-[0.98]"
           }`}
         >
           {isSubmitting ? (
             <>
-              <Radio className="w-4 h-4 animate-spin text-black" />
-              <span>Verifying pairing on server</span>
+              <Radio className="w-4 h-4 animate-spin text-zinc-500" />
+              <span>Verifying On Server...</span>
             </>
           ) : (
             <>
-              <Radio className="w-4 h-4" />
-              <span>Submit proof to verifier</span>
+              <Radio className="w-4 h-4 text-black" />
+              <span>Submit Proof To Verifier</span>
             </>
           )}
         </button>

@@ -1,11 +1,14 @@
 import sqlite3
 import os
-from typing import Tuple
+import time
+from typing import Tuple, Optional, Dict, Any, List
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "zkode_registry.db")
 
-def get_connection():
-    return sqlite3.connect(DB_PATH)
+def get_connection() -> sqlite3.Connection:
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db():
     conn = get_connection()
@@ -42,21 +45,226 @@ def init_db():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS attack_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            attack_type TEXT NOT NULL,
+            details TEXT,
+            service_scope_id TEXT,
+            blocked_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_challenge_nonce 
+        ON challenge_sessions (session_nonce);
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_nullifier_lookup 
+        ON nullifier_registry (nullifier_hash, service_scope_id);
+    """)
     conn.commit()
     conn.close()
 
-def register_nullifier_atomic(nullifier_hash: str, service_scope_id: str, session_nonce: str = "") -> Tuple[bool, str]:
+def is_nullifier_claimed(nullifier_hash: str, service_scope_id: str) -> bool:
+    """Check if a nullifier has already been claimed for a given service scope."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO nullifier_registry (nullifier_hash, service_scope_id, session_nonce_used) VALUES (?, ?, ?)",
+            """SELECT 1 FROM nullifier_registry 
+               WHERE nullifier_hash = ? AND service_scope_id = ?""",
+            (nullifier_hash, service_scope_id)
+        )
+        return cursor.fetchone() is not None
+    finally:
+        conn.close()
+
+def register_nullifier_atomic(
+    nullifier_hash: str, 
+    service_scope_id: str, 
+    session_nonce: str = ""
+) -> Tuple[bool, str]:
+    """Atomically commit a nullifier. If already claimed, raises Sybil rejection."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """INSERT INTO nullifier_registry 
+               (nullifier_hash, service_scope_id, session_nonce_used) 
+               VALUES (?, ?, ?)""",
             (nullifier_hash, service_scope_id, session_nonce)
         )
         conn.commit()
         return True, "Nullifier committed successfully."
     except sqlite3.IntegrityError:
         return False, f"Sybil double-dip violation: Nullifier {nullifier_hash} already claimed."
+    finally:
+        conn.close()
+
+def create_challenge_session(
+    session_id: str,
+    session_nonce: str,
+    service_scope_id: str,
+    expires_at_ms: int
+) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        now_ms = int(time.time() * 1000)
+        cursor.execute(
+            """INSERT INTO challenge_sessions 
+               (session_id, session_nonce, service_scope_id, created_at, expires_at, is_consumed)
+               VALUES (?, ?, ?, ?, ?, 0)""",
+            (session_id, session_nonce, service_scope_id, now_ms, expires_at_ms)
+        )
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+def validate_and_consume_nonce(session_nonce: str) -> Tuple[bool, str]:
+    """
+    Validates that a challenge nonce exists, is not expired (60s TTL), 
+    and has not been consumed. Atomically consumes it to prevent replay attacks.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    now_ms = int(time.time() * 1000)
+    try:
+        cursor.execute(
+            """SELECT session_id, expires_at, is_consumed 
+               FROM challenge_sessions 
+               WHERE session_nonce = ?""",
+            (session_nonce,)
+        )
+        row = cursor.fetchone()
+        if not row:
+            return False, "Replay defense violation: Challenge nonce was never issued or not found."
+        
+        if row["is_consumed"] == 1:
+            return False, "Replay defense violation: Challenge nonce has already been consumed."
+        
+        if now_ms > row["expires_at"]:
+            return False, "Challenge expired: 60-second validity window elapsed."
+
+        cursor.execute(
+            "UPDATE challenge_sessions SET is_consumed = 1 WHERE session_nonce = ?",
+            (session_nonce,)
+        )
+        conn.commit()
+        return True, "Nonce validated and consumed."
+    finally:
+        conn.close()
+
+def save_compiled_policy(
+    policy_id: str,
+    raw_prompt: str,
+    service_scope_id: str,
+    max_birth_timestamp: str,
+    min_balance_required: int,
+    max_income_allowed: int,
+    min_score_required: int,
+    symbolic_receipt: str
+) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """INSERT OR REPLACE INTO compiled_policies
+               (policy_id, raw_prompt, service_scope_id, max_birth_timestamp, 
+                min_balance_required, max_income_allowed, min_score_required, symbolic_receipt)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (policy_id, raw_prompt, service_scope_id, max_birth_timestamp,
+             min_balance_required, max_income_allowed, min_score_required, symbolic_receipt)
+        )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+def get_latest_policy_for_scope(service_scope_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT * FROM compiled_policies 
+               WHERE service_scope_id = ? 
+               ORDER BY created_at DESC LIMIT 1""",
+            (service_scope_id,)
+        )
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
+        return None
+    finally:
+        conn.close()
+
+def record_blocked_attack(attack_type: str, details: str = "", service_scope_id: str = "") -> bool:
+    """Records a blocked attack event for telemetry and the live Red-Team simulator."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """INSERT INTO attack_events (attack_type, details, service_scope_id)
+               VALUES (?, ?, ?)""",
+            (attack_type, details, service_scope_id)
+        )
+        conn.commit()
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
+
+def get_nullifier_ledger(limit: int = 50) -> List[Dict[str, Any]]:
+    """Fetches the latest registered anonymous nullifiers for Column 3's live ledger feed."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT nullifier_hash, service_scope_id, claimed_at, session_nonce_used
+               FROM nullifier_registry
+               ORDER BY claimed_at DESC
+               LIMIT ?""",
+            (limit,)
+        )
+        return [dict(row) for row in cursor.fetchall()]
+    finally:
+        conn.close()
+
+def get_system_stats() -> Dict[str, Any]:
+    """Computes real-time telemetry metrics for the network inspector and dashboard."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    now_ms = int(time.time() * 1000)
+    try:
+        cursor.execute("SELECT COUNT(*) as count FROM nullifier_registry")
+        verified_count = cursor.fetchone()["count"]
+
+        cursor.execute("SELECT COUNT(*) as count FROM attack_events")
+        attack_count = cursor.fetchone()["count"]
+
+        cursor.execute("SELECT COUNT(*) as count FROM attack_events WHERE attack_type = 'SYBIL_DOUBLE_DIP'")
+        sybil_count = cursor.fetchone()["count"]
+
+        cursor.execute("SELECT COUNT(*) as count FROM challenge_sessions WHERE is_consumed = 0 AND expires_at > ?", (now_ms,))
+        active_nonces = cursor.fetchone()["count"]
+
+        cursor.execute("SELECT COUNT(*) as count FROM compiled_policies")
+        policy_count = cursor.fetchone()["count"]
+
+        return {
+            "totalProofsVerified": verified_count,
+            "totalAttacksBlocked": attack_count,
+            "sybilAttemptsBlocked": sybil_count,
+            "activeChallengeSessions": active_nonces,
+            "compiledPoliciesCount": policy_count,
+            "piiBytesExposed": 0,
+            "protocol": "groth16",
+            "curve": "bn128"
+        }
     finally:
         conn.close()
 

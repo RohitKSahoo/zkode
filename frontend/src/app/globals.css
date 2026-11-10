@@ -4,75 +4,158 @@
 
 :root {
   --background: #000000;
-  --surface-base: #181818;
-  --surface-elevated: #1F1F1F;
-  --surface-active: #272727;
-  --border-subtle: #313131;
+  --surface-base: #0A0A0A;
+  --surface-elevated: #111111;
+  --surface-active: #1A1A1A;
+  --border-subtle: #262626;
+  --nothing-red: #D71921;
 }
 
 body {
   background-color: #000000;
   color: #FAFAFA;
-  font-family: var(--font-primary), system-ui, sans-serif;
+  font-family: var(--font-sans), monospace, sans-serif;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Base cubic bezier transition */
-.transition-weighted {
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  transition-duration: 500ms;
+/* Static Nothing OS Dot Grid Background */
+.bg-nothing-dots {
+  background-color: #000000;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
 }
 
-.transition-quick {
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  transition-duration: 300ms;
+/* Barba.js Wrapper & Container Styles */
+[data-barba="wrapper"] {
+  position: relative;
+  width: 100%;
 }
 
-/* Typography styles based on landing page design system */
+[data-barba="container"] {
+  width: 100%;
+  will-change: transform, opacity;
+}
+
+/* Barba.js Transition Animations */
+@keyframes barbaSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes barbaSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.animate-barba-enter {
+  animation: barbaSlideIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-barba-leave {
+  animation: barbaSlideOut 180ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+.barba-leave {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.barba-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.barba-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.barba-enter {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+.barba-enter-active {
+  transition: opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.barba-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Sharp Nothing OS Typography */
 .heading-hero {
-  font-size: 2.25rem; /* text-4xl */
-  line-height: 2.5rem;
-  font-weight: 600;
-  background: linear-gradient(90deg, #FFFFFF 0%, #9B9B9B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 2.5rem;
+  line-height: 2.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
   text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .heading-hero {
+    font-size: 3.25rem;
+    line-height: 3.5rem;
+  }
 }
 
 .title-card {
-  font-size: 1rem; /* text-base */
+  font-size: 1.125rem;
   line-height: 1.5rem;
-  font-weight: 500;
-  text-wrap: balance;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .body-standard {
-  font-size: 0.875rem; /* text-sm */
-  line-height: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.35rem;
   font-weight: 400;
-  text-wrap: pretty;
+  color: #A3A3A3;
 }
 
-.caption-meta {
-  font-size: 0.75rem; /* text-xs */
-  line-height: 1rem;
-  font-weight: 400;
+/* Nothing OS Sharp Card & Panels */
+.nothing-box {
+  background-color: #0A0A0A;
+  border: 1px solid #262626;
+  border-radius: 0px !important;
 }
 
-/* Custom scrollbars with flat styling */
+.nothing-box-hover {
+  transition: border-color 150ms ease;
+}
+
+.nothing-box-hover:hover {
+  border-color: #525252;
+}
+
+/* Sharp Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #181818;
+  background: #000000;
 }
 ::-webkit-scrollbar-thumb {
-  background: #313131;
-  border-radius: 4px;
+  background: #262626;
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #454545;
+  background: #525252;
 }

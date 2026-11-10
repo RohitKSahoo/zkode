@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Header } from "../components/Header";
 import { PrivateVault } from "../components/PrivateVault";
 import { NetworkInspector } from "../components/NetworkInspector";
@@ -9,6 +9,9 @@ import { RedTeamAttackBar } from "../components/RedTeamAttackBar";
 import { PrivateCredentials, buildWitness, PublicPolicy } from "../lib/witnessBuilder";
 import { executeZkProof, ZkProofResult } from "../lib/zkProver";
 
+type ActivePage = "vault" | "network" | "verifier";
+type TransitionStatus = "idle" | "leaving" | "entering";
+
 const DEFAULT_CREDENTIALS: PrivateCredentials = {
   userSecretId: "981273918237192837129837192837",
   birthTimestamp: "20030416",
@@ -16,11 +19,11 @@ const DEFAULT_CREDENTIALS: PrivateCredentials = {
   actualIncome: "350000",
   creditOrCgpaScore: "860",
   expirationTimestamp: "20261115",
-  sigR8x: "1351119567990714856697380182600570775533353457199042657802878933215570081829",
-  sigR8y: "14841775189709280385959955735165682283038676231922416049439603001859600742152",
-  sigS: "1632734185797686733261621516087532326795499252328860010091807661271618826500",
-  issuerPubKeyAx: "1846294719203948571920394857192039485719203948571920394857",
-  issuerPubKeyAy: "928374910293847561029384756102938475610293847561029384756",
+  sigR8x: "15983502441014741693118001401111597102620505013186307209250310093672474092456",
+  sigR8y: "1979485915277033923079535022718253435669059167959695902127897338093088485962",
+  sigS: "135030378803597992460893792216210384268754990109084567856506613330019146666",
+  issuerPubKeyAx: "13277427435165878497778222415993513565335242147425444199013288855685581939618",
+  issuerPubKeyAy: "13622229784656158136036771217484571176836296686641868549125388198837476602820",
 };
 
 const DEFAULT_POLICY: PublicPolicy = {
@@ -33,6 +36,10 @@ const DEFAULT_POLICY: PublicPolicy = {
 };
 
 export default function Home() {
+  const [activePage, setActivePage] = useState<ActivePage>("vault");
+  const [transitionStatus, setTransitionStatus] = useState<TransitionStatus>("idle");
+  const barbaRef = useRef<any>(null);
+
   const [credentials, setCredentials] = useState<PrivateCredentials>(DEFAULT_CREDENTIALS);
   const [policy, setPolicy] = useState<PublicPolicy>(DEFAULT_POLICY);
   const [policyPrompt, setPolicyPrompt] = useState(
@@ -63,7 +70,76 @@ export default function Home() {
   // Red Team State
   const [activeAttack, setActiveAttack] = useState<string>("NONE");
   const [signatureTampered, setSignatureTampered] = useState<boolean>(false);
-  const [serverHealthy, setServerHealthy] = useState<boolean>(true);
+
+  // Initialize Barba.js Lifecycle Engine in Browser
+  useEffect(() => {
+    let mounted = true;
+    if (typeof window !== "undefined") {
+      import("@barba/core")
+        .then(({ default: barba }) => {
+          if (!mounted || !barba) return;
+          barbaRef.current = barba;
+          try {
+            barba.init({
+              debug: false,
+              preventRunning: true,
+              prevent: () => true, // Preserve React DOM tree and in-memory WebAssembly context
+              transitions: [
+                {
+                  name: "nothing-slide-transition",
+                  leave() {},
+                  enter() {},
+                },
+              ],
+            });
+          } catch {
+            // Already initialized or SSR boundary
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Barba.js Driven Page Transition Handler
+  const handleNavigate = (targetPage: ActivePage) => {
+    if (targetPage === activePage || transitionStatus !== "idle") return;
+
+    // Trigger Barba.js Leave Sequence
+    setTransitionStatus("leaving");
+    if (barbaRef.current && barbaRef.current.hooks) {
+      try {
+        barbaRef.current.hooks.do("beforeLeave");
+        barbaRef.current.hooks.do("leave");
+      } catch {}
+    }
+
+    // Complete Leave -> Initiate Barba.js Enter Sequence
+    setTimeout(() => {
+      setActivePage(targetPage);
+      setTransitionStatus("entering");
+
+      if (barbaRef.current && barbaRef.current.hooks) {
+        try {
+          barbaRef.current.hooks.do("beforeEnter");
+          barbaRef.current.hooks.do("enter");
+        } catch {}
+      }
+
+      // Finish Transition -> Settle Idle
+      setTimeout(() => {
+        setTransitionStatus("idle");
+        if (barbaRef.current && barbaRef.current.hooks) {
+          try {
+            barbaRef.current.hooks.do("afterEnter");
+            barbaRef.current.hooks.do("after");
+          } catch {}
+        }
+      }, 280);
+    }, 180);
+  };
 
   // Fetch Session Challenge Nonce
   const fetchChallenge = async () => {
@@ -73,18 +149,36 @@ export default function Home() {
         const data = await res.json();
         setSessionNonce(data.sessionNonce);
         setNonceTtl(60);
-        setServerHealthy(true);
         return;
       }
     } catch {
-      setServerHealthy(false);
       setSessionNonce(Math.floor(Math.random() * 1e16).toString() + Math.floor(Math.random() * 1e16).toString());
       setNonceTtl(60);
     }
   };
 
+  // Fetch Live Nullifier Ledger
+  const fetchLedger = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/ledger");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ledger) {
+          setNullifierLedger(
+            data.ledger.map((item: any) => ({
+              nullifier: item.nullifier_hash,
+              scope: item.service_scope_id,
+              timestamp: item.claimed_at,
+            }))
+          );
+        }
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     fetchChallenge();
+    fetchLedger();
     const interval = setInterval(() => {
       setNonceTtl((prev) => (prev > 1 ? prev - 1 : 60));
     }, 1000);
@@ -94,11 +188,33 @@ export default function Home() {
   // Mint Sample Credentials
   const handleMintNewDemo = async () => {
     try {
-      const res = await fetch("/api/crypto/mint", {
+      let res = await fetch("http://localhost:8000/api/crypto/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userSecretId: Math.floor(Math.random() * 1e15).toString(),
+          birthTimestamp: "20030416",
+          actualBalance: "84500",
+          actualIncome: "350000",
+          creditOrCgpaScore: "860",
+          expirationTimestamp: "20261115",
+        }),
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch("/api/crypto/mint", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userSecretId: Math.floor(Math.random() * 1e15).toString(),
+            birthTimestamp: "20030416",
+            actualBalance: "84500",
+            actualIncome: "350000",
+            creditOrCgpaScore: "860",
+            expirationTimestamp: "20261115",
+          }),
+        });
+      }
           birthTimestamp: "20030416",
           actualBalance: "84500",
           actualIncome: "350000",
@@ -196,6 +312,7 @@ export default function Home() {
       const data = await res.json();
       if (res.ok && data.verified) {
         setVerificationResult(data);
+        fetchLedger();
         setNullifierLedger((prev) => [
           {
             nullifier: nullifierHash,
@@ -287,7 +404,7 @@ export default function Home() {
         pi_a: ["0xdeadbeef12345678", prev.proof.pi_a[1], "1"],
       },
     }));
-    alert("Wire coordinate pi a altered before transmission.");
+    alert("Wire coordinate pi_a altered before transmission.");
   };
 
   const handleReset = () => {
@@ -301,25 +418,23 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#000000] text-[#FAFAFA]">
-      <Header serverHealthy={serverHealthy} proverReady={true} />
+    <div data-barba="wrapper" className="flex flex-col min-h-screen text-[#FAFAFA]">
+      <Header />
 
-      {/* Hero Headline Section adhering to B5 layout limits */}
-      <section className="px-6 pt-2 pb-6 text-center max-w-[680px] mx-auto">
-        <h1 className="heading-hero mb-3">
-          Prove your eligibility without revealing your identity
-        </h1>
-        <p className="body-standard text-zinc-400">
-          Statutory compliance verified locally in browser WebAssembly using zero knowledge proofs.
-          Zero bytes of personal data transmitted across the wire.
-        </p>
-      </section>
-
-      {/* 3-Column Glass-Box Grid */}
-      <main className="flex-1 px-4 pb-28 max-w-[1600px] w-full mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-          {/* Column 1: Private Vault */}
-          <div className="lg:col-span-4 flex flex-col">
+      {/* Main Adaptive Page View with Barba.js Container */}
+      <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto overflow-hidden">
+        <div
+          data-barba="container"
+          data-barba-namespace={activePage}
+          className={`w-full ${
+            transitionStatus === "leaving"
+              ? "animate-barba-leave"
+              : transitionStatus === "entering"
+              ? "animate-barba-enter"
+              : ""
+          }`}
+        >
+          {activePage === "vault" && (
             <PrivateVault
               credentials={credentials}
               isProving={isProving}
@@ -328,10 +443,9 @@ export default function Home() {
               onMintNewDemo={handleMintNewDemo}
               signatureTampered={signatureTampered}
             />
-          </div>
+          )}
 
-          {/* Column 2: Network Inspector */}
-          <div className="lg:col-span-4 flex flex-col">
+          {activePage === "network" && (
             <NetworkInspector
               proofData={proofData}
               nullifierHash={nullifierHash}
@@ -341,10 +455,9 @@ export default function Home() {
               isSubmitting={isSubmitting}
               canSubmit={!!proofData && !isProving}
             />
-          </div>
+          )}
 
-          {/* Column 3: Policy Studio */}
-          <div className="lg:col-span-4 flex flex-col">
+          {activePage === "verifier" && (
             <VerifierPortal
               policyPrompt={policyPrompt}
               onPolicyChange={setPolicyPrompt}
@@ -355,18 +468,62 @@ export default function Home() {
               verificationResult={verificationResult}
               nullifierLedger={nullifierLedger}
             />
-          </div>
+          )}
         </div>
       </main>
 
-      <RedTeamAttackBar
-        onInjectFakeBalance={handleInjectFakeBalance}
-        onReplayProof={handleReplayProof}
-        onProbeUnquantized={handleProbeUnquantized}
-        onTamperWire={handleTamperWire}
-        onReset={handleReset}
-        activeAttack={activeAttack}
-      />
+      {/* Expandable Footer Pill Menu - Visible ONLY in the Verifier Page */}
+      {activePage === "verifier" && (
+        <RedTeamAttackBar
+          onInjectFakeBalance={handleInjectFakeBalance}
+          onReplayProof={handleReplayProof}
+          onProbeUnquantized={handleProbeUnquantized}
+          onTamperWire={handleTamperWire}
+          onReset={handleReset}
+          activeAttack={activeAttack}
+        />
+      )}
+
+      {/* Bottom Dock for Switching Pages via Barba.js transition handler */}
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
+          <button
+            onClick={() => handleNavigate("vault")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "vault"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "vault" ? "text-black" : "text-[#D71921]"}>01</span>
+            <span>Private Vault</span>
+          </button>
+
+          <button
+            onClick={() => handleNavigate("network")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "network"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "network" ? "text-black" : "text-[#D71921]"}>02</span>
+            <span>Network Inspector</span>
+          </button>
+
+          <button
+            onClick={() => handleNavigate("verifier")}
+            className={`px-4 py-2 transition-all rounded-none uppercase flex items-center space-x-2 tracking-wider ${
+              activePage === "verifier"
+                ? "bg-white text-black font-bold border border-white"
+                : "text-zinc-400 hover:text-white hover:bg-[#141414] border border-transparent"
+            }`}
+          >
+            <span className={activePage === "verifier" ? "text-black" : "text-[#D71921]"}>03</span>
+            <span>Policy Studio</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
