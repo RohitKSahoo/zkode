@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: zkode-backend
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: GROQ_API_KEY
+        sync: false
