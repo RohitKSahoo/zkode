@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
+import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -27,9 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${spaceGrotesk.variable} ${spaceMono.variable}`}>
       <body className="bg-nothing-dots text-[#FAFAFA] min-h-screen antialiased selection:bg-white selection:text-black">
-        <div className="relative flex flex-col min-h-screen">
-          {children}
-        </div>
+        <SmoothScroll>
+          <div className="relative flex flex-col min-h-screen">
+            {children}
+          </div>
+        </SmoothScroll>
       </body>
     </html>
   );

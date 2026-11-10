@@ -233,7 +233,7 @@ for ($i = 1; $i -le 25; $i++) {
     Start-Sleep -Seconds 1
     try {
         $backendCheck = Invoke-RestMethod -Uri $backendUrl -TimeoutSec 1 -ErrorAction SilentlyContinue
-        if ($backendCheck -and $backendCheck.status -eq "ok") {
+        if ($backendCheck -and ($backendCheck.status -eq "ok" -or $backendCheck.status -eq "healthy")) {
             $ready = $true
             break
         }
