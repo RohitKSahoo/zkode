@@ -27,3 +27,4 @@ export function validatePolicyEntropy(policy: Record<string, string>): void {
     localStorage.setItem(queryKey, now.toString());
   }
 }
+

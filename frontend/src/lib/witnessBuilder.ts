@@ -50,3 +50,4 @@ export function buildWitness(
     sessionChallengeNonce: sessionNonce,
   };
 }
+

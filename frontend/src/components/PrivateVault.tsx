@@ -22,160 +22,166 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
   signatureTampered,
 }) => {
   return (
-    <div className={`glass-panel rounded-xl p-5 flex flex-col h-full border transition-all duration-300 ${
-      signatureTampered ? "glass-panel-glow-rose border-rose-500/50" : "border-zinc-800"
-    }`}>
+    <div
+      className={`rounded-2xl p-6 flex flex-col h-full bg-[#181818] border transition-weighted ${
+        signatureTampered
+          ? "border-rose-500/80 bg-[#1F1F1F]"
+          : "border-[#313131]"
+      }`}
+    >
       {/* Column Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80 mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+      <div className="flex items-center justify-between pb-4 border-b border-[#313131] mb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-[#272727] border border-[#313131] flex items-center justify-center text-indigo-400">
             <Lock className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-100 flex items-center gap-1.5">
-              Private Vault
-              <span className="text-[10px] lowercase px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 font-mono">
-                client ram
+            <h2 className="title-card text-white flex items-center gap-2">
+              Private vault
+              <span className="text-xs px-2 py-0.5 rounded-md bg-[#272727] text-zinc-300 font-mono">
+                client memory
               </span>
             </h2>
-            <p className="text-[11px] text-zinc-400">Raw PII stored 100% locally in device memory</p>
+            <p className="caption-meta text-zinc-400 mt-0.5">
+              Raw personal data stored strictly in local browser memory
+            </p>
           </div>
         </div>
 
         <button
           onClick={onMintNewDemo}
-          className="text-[11px] font-mono px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 transition-colors flex items-center space-x-1"
+          className="text-xs font-medium px-3 py-1.5 rounded-lg bg-[#272727] hover:bg-[#313131] border border-[#313131] text-zinc-200 transition-colors flex items-center space-x-1.5"
         >
-          <Sparkles className="w-3 h-3 text-amber-400" />
-          <span>Mint Sample</span>
+          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <span>Mint sample</span>
         </button>
       </div>
 
       {signatureTampered && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/40 text-rose-300 text-xs flex items-start space-x-2 animate-pulse">
+        <div className="mb-4 p-4 rounded-xl bg-[#272727] border border-rose-500/60 text-rose-300 text-xs flex items-start space-x-3">
           <ShieldAlert className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
           <div>
-            <span className="font-bold">IN-CIRCUIT EDDSA SIGNATURE FORGERY:</span>
-            <p className="text-[11px] text-rose-300/80 mt-0.5">
-              The local balance was tampered. The BabyJubJub signature no longer matches Poseidon hash. Groth16 proof generation will fail.
+            <span className="font-semibold block text-rose-200">Digital signature mismatch</span>
+            <p className="text-zinc-400 mt-0.5 text-xs">
+              Local balance modified without issuer signature. In circuit assertion will reject proof synthesis.
             </p>
           </div>
         </div>
       )}
 
       {/* Credential Cards Container */}
-      <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
+      <div className="space-y-3 flex-1 overflow-y-auto pr-1">
         {/* 1. National Identity Card */}
-        <div className="p-3.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors">
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-4 rounded-xl bg-[#1F1F1F] border border-[#313131] hover:border-[#454545] transition-colors">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <User className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-xs font-semibold text-zinc-200">Aadhaar / National ID</span>
+              <User className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-medium text-white">Identity record</span>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+            <span className="text-xs font-mono text-emerald-400 px-2 py-0.5 rounded-md bg-[#272727] border border-[#313131]">
               Verified
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div>
-              <span className="text-[10px] text-zinc-400 block">Date of Birth</span>
-              <span className="text-zinc-200">{credentials.birthTimestamp} (Age 23)</span>
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Date of birth</span>
+              <span className="text-zinc-200 font-medium">{credentials.birthTimestamp} (Age 23)</span>
             </div>
             <div>
-              <span className="text-[10px] text-zinc-400 block">Master Secret ID</span>
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Holder secret salt</span>
               <span className="text-zinc-400 truncate block">0x{credentials.userSecretId.slice(0, 10)}...</span>
             </div>
           </div>
         </div>
 
         {/* 2. Bank Financial Statement */}
-        <div className="p-3.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors">
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-4 rounded-xl bg-[#1F1F1F] border border-[#313131] hover:border-[#454545] transition-colors">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Building className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-xs font-semibold text-zinc-200">State Bank of India</span>
+              <Building className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-medium text-white">Banking credential</span>
             </div>
-            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
-              EdDSA Signed
+            <span className="text-xs font-mono text-cyan-400 px-2 py-0.5 rounded-md bg-[#272727] border border-[#313131]">
+              EdDSA signed
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div>
-              <span className="text-[10px] text-zinc-400 block">Liquid Savings Balance</span>
-              <span className={`text-base font-bold ${signatureTampered ? "text-rose-400 line-through" : "text-emerald-400"}`}>
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Liquid balance</span>
+              <span className={`text-base font-semibold ${signatureTampered ? "text-rose-400 line-through" : "text-emerald-400"}`}>
                 ₹{parseInt(credentials.actualBalance || "0", 10).toLocaleString()}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-zinc-400 block">Annual Income</span>
-              <span className="text-zinc-200">
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Annual income</span>
+              <span className="text-zinc-200 font-medium">
                 ₹{parseInt(credentials.actualIncome || "0", 10).toLocaleString()}
               </span>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[10px] font-mono text-zinc-400">
-            <span>Valid Until: {credentials.expirationTimestamp}</span>
-            <span className="text-zinc-400 truncate max-w-[140px]">
-              SigS: {credentials.sigS.slice(0, 12)}...
+          <div className="mt-3 pt-3 border-t border-[#313131] flex items-center justify-between text-xs font-mono text-zinc-400">
+            <span>Expiry: {credentials.expirationTimestamp}</span>
+            <span className="truncate max-w-[140px] text-zinc-500">
+              Sig: {credentials.sigS.slice(0, 10)}...
             </span>
           </div>
         </div>
 
         {/* 3. University Academic Merit */}
-        <div className="p-3.5 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors">
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-4 rounded-xl bg-[#1F1F1F] border border-[#313131] hover:border-[#454545] transition-colors">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <GraduationCap className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-xs font-semibold text-zinc-200">National Institute of Tech</span>
+              <GraduationCap className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-medium text-white">Academic portal</span>
             </div>
-            <span className="text-[10px] font-mono text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded border border-violet-500/20">
-              Academic Seal
+            <span className="text-xs font-mono text-violet-400 px-2 py-0.5 rounded-md bg-[#272727] border border-[#313131]">
+              Accredited
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div>
-              <span className="text-[10px] text-zinc-400 block">Cumulative GPA</span>
-              <span className="text-zinc-200 font-bold">
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Grade average</span>
+              <span className="text-zinc-200 font-medium">
                 {(parseInt(credentials.creditOrCgpaScore || "0", 10) / 100).toFixed(2)} / 10.00
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-zinc-400 block">Scaled Circuit Score</span>
-              <span className="text-zinc-300">{credentials.creditOrCgpaScore}</span>
+              <span className="text-zinc-500 block text-[11px] mb-0.5">Circuit score</span>
+              <span className="text-zinc-300 font-medium">{credentials.creditOrCgpaScore}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Prover Action Trigger */}
-      <div className="mt-4 pt-4 border-t border-zinc-800/80">
+      <div className="mt-5 pt-4 border-t border-[#313131]">
         <button
           onClick={onGenerateProof}
           disabled={isProving}
-          className={`w-full py-3 px-4 rounded-lg font-mono text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg ${
+          className={`w-full py-2.5 px-4 rounded-xl font-medium text-sm transition-weighted flex items-center justify-center space-x-2 border ${
             isProving
-              ? "bg-zinc-800 text-zinc-400 cursor-not-allowed"
-              : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20 hover:shadow-emerald-500/30"
+              ? "bg-[#272727] text-zinc-500 border-[#313131] cursor-not-allowed"
+              : "bg-emerald-500 hover:bg-emerald-400 text-black border-emerald-400 active:scale-[0.98]"
           }`}
         >
           {isProving ? (
             <>
               <Cpu className="w-4 h-4 animate-spin text-emerald-400" />
-              <span>Generating Groth16 Proof (WASM)...</span>
+              <span>Synthesizing proof in WebAssembly</span>
             </>
           ) : (
             <>
               <Cpu className="w-4 h-4" />
-              <span>Generate Proof (WASM Prover)</span>
+              <span>Generate proof (WASM)</span>
             </>
           )}
         </button>
 
         {proverTimeMs > 0 && (
-          <div className="mt-2 text-center text-[11px] font-mono text-zinc-400 flex items-center justify-center space-x-1.5">
+          <div className="mt-2.5 text-center text-xs font-mono text-zinc-400 flex items-center justify-center space-x-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Witness synthesized & proved in</span>
-            <span className="text-emerald-400 font-bold">{proverTimeMs} ms</span>
+            <span>Proof synthesized locally in</span>
+            <span className="text-emerald-400 font-semibold">{proverTimeMs} ms</span>
           </div>
         )}
       </div>

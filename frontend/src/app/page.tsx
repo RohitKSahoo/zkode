@@ -36,13 +36,13 @@ export default function Home() {
   const [credentials, setCredentials] = useState<PrivateCredentials>(DEFAULT_CREDENTIALS);
   const [policy, setPolicy] = useState<PublicPolicy>(DEFAULT_POLICY);
   const [policyPrompt, setPolicyPrompt] = useState(
-    "Applicant must be at least 18 years old, maintain bank balance >= ₹50,000, annual income <= ₹8,00,000, and academic score >= 8.2 CGPA."
+    "Applicant must be at least 18 years old, maintain bank balance above 50000, annual income under 800000, and academic score above 8.2 CGPA."
   );
   const [symbolicReceipt, setSymbolicReceipt] = useState<string[]>([
-    "Statutory Age: >= 18 years (Cutoff: <= 2008-11-10)",
-    "Asset Minimum: >= ₹50,000 (Quantized step ₹25,000)",
-    "Income Ceiling: <= ₹8,00,000 (Quantized step ₹25,000)",
-    "Merit Threshold: >= 8.20 CGPA (Score: 820)",
+    "Statutory age: at least 18 years (cutoff on or before 2008 11 10)",
+    "Asset minimum: above 50,000 (quantized step 25,000)",
+    "Income ceiling: under 8,00,000 (quantized step 25,000)",
+    "Merit threshold: grade average above 8.20 CGPA",
   ]);
 
   // Session & Nonce
@@ -77,7 +77,6 @@ export default function Home() {
         return;
       }
     } catch {
-      // Local fallback nonce if backend offline
       setServerHealthy(false);
       setSessionNonce(Math.floor(Math.random() * 1e16).toString() + Math.floor(Math.random() * 1e16).toString());
       setNonceTtl(60);
@@ -92,7 +91,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Mint Sample Credentials via API or Local Mock
+  // Mint Sample Credentials
   const handleMintNewDemo = async () => {
     try {
       const res = await fetch("/api/crypto/mint", {
@@ -123,7 +122,7 @@ export default function Home() {
     }
   };
 
-  // Compile Policy (LangGraph Agent with Fallback)
+  // Compile Policy
   const handleCompilePolicy = async () => {
     setIsCompiling(true);
     try {
@@ -145,19 +144,18 @@ export default function Home() {
         setSymbolicReceipt(data.symbolicReceipt);
       }
     } catch {
-      // Local fallback compiler
       setSymbolicReceipt([
-        "Statutory Age: >= 18 years (Born on or before 2008-11-10)",
-        "Asset Minimum: >= ₹50,000 (Quantized step ₹25,000)",
-        "Income Ceiling: <= ₹8,00,000 (Quantized step ₹25,000)",
-        "Merit Threshold: >= 8.20 CGPA",
+        "Statutory age: at least 18 years (cutoff on or before 2008 11 10)",
+        "Asset minimum: above 50,000 (quantized step 25,000)",
+        "Income ceiling: under 8,00,000 (quantized step 25,000)",
+        "Merit threshold: grade average above 8.20 CGPA",
       ]);
     } finally {
       setIsCompiling(false);
     }
   };
 
-  // Generate Groth16 Proof (Web Worker WASM)
+  // Generate Groth16 Proof in WebAssembly
   const handleGenerateProof = async () => {
     setIsProving(true);
     setVerificationResult(null);
@@ -167,14 +165,13 @@ export default function Home() {
       setProofData(res);
       setProverTimeMs(res.computeTimeMs);
 
-      // Nullifier is public signal output 1
       if (res.publicSignals && res.publicSignals.length > 1) {
         setNullifierHash(res.publicSignals[1]);
       } else {
         setNullifierHash("0x" + Math.random().toString(16).slice(2, 14) + "...");
       }
     } catch (err: any) {
-      alert("Prover Error: " + err.message);
+      alert("Prover notification: " + err.message);
     } finally {
       setIsProving(false);
     }
@@ -215,11 +212,10 @@ export default function Home() {
         });
       }
     } catch {
-      // Offline fallback verification simulation
       if (activeAttack === "REPLAY") {
         setVerificationResult({
           verified: false,
-          error: "Sybil double-dip violation: Nullifier already claimed for scope #901.",
+          error: "Sybil duplicate claim violation: Nullifier already claimed for scope 901.",
           sybilBlocked: true,
         });
       } else if (activeAttack === "TAMPER" || signatureTampered) {
@@ -232,7 +228,7 @@ export default function Home() {
         setVerificationResult({
           verified: true,
           nullifierHash: nullifierHash,
-          message: "Zero-Knowledge eligibility verified. Nullifier registered anonymously.",
+          message: "Zero knowledge eligibility verified. Nullifier registered anonymously.",
         });
         setNullifierLedger((prev) => [
           {
@@ -248,47 +244,42 @@ export default function Home() {
     }
   };
 
-  // Red Team Attack 1: Inject Fake Balance
+  // Red Team Exploits
   const handleInjectFakeBalance = () => {
     setActiveAttack("FAKE_BALANCE_10L");
     setSignatureTampered(true);
     setCredentials((prev) => ({
       ...prev,
-      actualBalance: "1000000", // ₹10 Lakhs (forged without updating bank signature)
+      actualBalance: "1000000",
     }));
     setProofData(null);
     setVerificationResult(null);
   };
 
-  // Red Team Attack 2: Replay Stolen Proof
   const handleReplayProof = async () => {
     setActiveAttack("REPLAY_STOLEN_PROOF");
     if (!nullifierHash) {
-      alert("Please generate a proof first before testing the replay attack.");
+      alert("Please synthesize a proof first before testing the replay defense.");
       return;
     }
-    // Attempt double-dip submission
     handleSubmitProof();
   };
 
-  // Red Team Attack 3: Probe Non-Quantized (₹63,412)
   const handleProbeUnquantized = () => {
     setActiveAttack("PROBE_UNQUANTIZED_63412");
     setPolicy((prev) => ({
       ...prev,
-      minBalanceRequired: "63412", // Violates ₹25,000 quantization step
+      minBalanceRequired: "63412",
     }));
-    alert("Probing attack injected: Verifier requested balance >= ₹63,412. Click 'Generate Proof (WASM)' to test Entropy Guard!");
+    alert("Probing threshold set to 63412. Click Generate proof to test entropy guard.");
   };
 
-  // Red Team Attack 4: Tamper Wire
   const handleTamperWire = () => {
     setActiveAttack("TAMPER_WIRE_PAYLOAD");
     if (!proofData) {
-      alert("Generate a proof first before tampering with wire payload.");
+      alert("Synthesize a proof first before tampering with wire payload.");
       return;
     }
-    // Corrupt proof coordinate in transit
     setProofData((prev: any) => ({
       ...prev,
       proof: {
@@ -296,10 +287,9 @@ export default function Home() {
         pi_a: ["0xdeadbeef12345678", prev.proof.pi_a[1], "1"],
       },
     }));
-    alert("Wire Tampered: Modifying curve coordinate π_A before submission to verifier.");
+    alert("Wire coordinate pi a altered before transmission.");
   };
 
-  // Reset Demo to Clean State
   const handleReset = () => {
     setCredentials(DEFAULT_CREDENTIALS);
     setPolicy(DEFAULT_POLICY);
@@ -311,12 +301,24 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#000000] text-[#FAFAFA]">
       <Header serverHealthy={serverHealthy} proverReady={true} />
 
-      <main className="flex-1 p-4 pb-28 max-w-[1700px] w-full mx-auto">
+      {/* Hero Headline Section adhering to B5 layout limits */}
+      <section className="px-6 pt-2 pb-6 text-center max-w-[680px] mx-auto">
+        <h1 className="heading-hero mb-3">
+          Prove your eligibility without revealing your identity
+        </h1>
+        <p className="body-standard text-zinc-400">
+          Statutory compliance verified locally in browser WebAssembly using zero knowledge proofs.
+          Zero bytes of personal data transmitted across the wire.
+        </p>
+      </section>
+
+      {/* 3-Column Glass-Box Grid */}
+      <main className="flex-1 px-4 pb-28 max-w-[1600px] w-full mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-          {/* Column 1: Private Vault (3.5 / 12) */}
+          {/* Column 1: Private Vault */}
           <div className="lg:col-span-4 flex flex-col">
             <PrivateVault
               credentials={credentials}
@@ -328,7 +330,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Column 2: Network Inspector (4 / 12) */}
+          {/* Column 2: Network Inspector */}
           <div className="lg:col-span-4 flex flex-col">
             <NetworkInspector
               proofData={proofData}
@@ -341,7 +343,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Column 3: Policy Studio & Verifier (4 / 12) */}
+          {/* Column 3: Policy Studio */}
           <div className="lg:col-span-4 flex flex-col">
             <VerifierPortal
               policyPrompt={policyPrompt}

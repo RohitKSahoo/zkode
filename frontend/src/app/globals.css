@@ -3,60 +3,76 @@
 @tailwind utilities;
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #000000;
+  --surface-base: #181818;
+  --surface-elevated: #1F1F1F;
+  --surface-active: #272727;
+  --border-subtle: #313131;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #000000;
+  color: #FAFAFA;
+  font-family: var(--font-primary), system-ui, sans-serif;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Dot grid background pattern */
-.bg-grid-pattern {
-  background-size: 32px 32px;
-  background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+/* Base cubic bezier transition */
+.transition-weighted {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: 500ms;
 }
 
-/* Glassmorphism containers */
-.glass-panel {
-  background: rgba(18, 18, 24, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+.transition-quick {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition-duration: 300ms;
 }
 
-.glass-panel-glow-emerald {
-  border-color: rgba(52, 211, 153, 0.3);
-  box-shadow: 0 0 25px -5px rgba(52, 211, 153, 0.2);
+/* Typography styles based on landing page design system */
+.heading-hero {
+  font-size: 2.25rem; /* text-4xl */
+  line-height: 2.5rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, #FFFFFF 0%, #9B9B9B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-wrap: balance;
 }
 
-.glass-panel-glow-rose {
-  border-color: rgba(244, 63, 94, 0.3);
-  box-shadow: 0 0 25px -5px rgba(244, 63, 94, 0.2);
+.title-card {
+  font-size: 1rem; /* text-base */
+  line-height: 1.5rem;
+  font-weight: 500;
+  text-wrap: balance;
 }
 
-.glass-panel-glow-amber {
-  border-color: rgba(251, 191, 36, 0.3);
-  box-shadow: 0 0 25px -5px rgba(251, 191, 36, 0.2);
+.body-standard {
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.25rem;
+  font-weight: 400;
+  text-wrap: pretty;
 }
 
-/* Custom scrollbars */
+.caption-meta {
+  font-size: 0.75rem; /* text-xs */
+  line-height: 1rem;
+  font-weight: 400;
+}
+
+/* Custom scrollbars with flat styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: #181818;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+  background: #313131;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #454545;
 }
