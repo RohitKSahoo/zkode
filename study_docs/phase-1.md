@@ -14,4 +14,5 @@
 ## 📝 Phase Completion & Change Notes
 - **2026-11-10**: Scaffolding initialized. Created master specification docs in `docs/`. Authored parameterized universal eligibility circuit in `circuits/universal_eligibility_v2.circom` with Poseidon holder binding and BabyJubJub EdDSA in-circuit verification. Configured build pipeline.
 - **2026-11-10**: Downloaded `circom-windows-amd64.exe` into `circuits/circom.exe`. Initialized backend config and SQLite database schema in `backend/app/core/`. Installed `ai-design-skills` (`landing-page-design`, `figma-designer`) from `elayadesign/ai-design-skills` and wired into `AGENTS.md`. — [@SazWhatician](https://github.com/SazWhatician)
+- **2026-11-10**: Initialized Git repository, configured `.gitignore`, and pushed initial commit `f31d973` to `https://github.com/RohitKSahoo/zkode.git` on branch `main`. — [@SazWhatician](https://github.com/SazWhatician)
 
