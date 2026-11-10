@@ -49,7 +49,7 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
   ];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Page Header */}
       <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start space-x-3.5">
@@ -77,7 +77,7 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
             <button
               key={idx}
               onClick={() => onPolicyChange(p.prompt)}
-              className="px-3 py-1.5 bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-zinc-400 text-[11px] font-mono text-zinc-300 uppercase tracking-wider transition-colors rounded-none"
+              className="px-3.5 py-1.5 bg-[#141414] hover:bg-[#202020] border border-[#262626] hover:border-zinc-400 text-[11px] font-mono text-zinc-300 uppercase tracking-wider transition-colors rounded-none"
             >
               {p.title}
             </button>
@@ -105,11 +105,11 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
             className="w-full bg-black border border-[#262626] focus:border-white p-4 font-mono text-xs text-white placeholder-zinc-600 focus:outline-none transition-colors resize-none rounded-none leading-relaxed"
           />
 
-          <div className="mt-3 flex justify-end">
+          <div className="mt-4 flex justify-end">
             <button
               onClick={onCompilePolicy}
               disabled={isCompiling}
-              className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black border border-white font-mono text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all rounded-none disabled:opacity-50 active:scale-[0.98]"
+              className="px-6 py-2.5 bg-white hover:bg-zinc-200 text-black border border-white font-mono text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all rounded-none disabled:opacity-50 active:scale-[0.98]"
             >
               <Sparkles className="w-3.5 h-3.5 text-black" />
               <span>{isCompiling ? "Compiling Rule..." : "Compile Policy"}</span>
@@ -120,17 +120,17 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
 
       {/* Quantized Mathematical Receipt */}
       {symbolicReceipt.length > 0 && (
-        <div className="bg-[#0A0A0A] border border-[#262626] p-5 rounded-none font-mono text-xs">
-          <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-400 mb-3">
+        <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none font-mono text-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-400 mb-4">
             <span className="uppercase tracking-wider text-[11px]">// Quantized Rule Receipt</span>
             <span className="text-emerald-400 text-[10px] uppercase">Enforcing Rounding Guard</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {symbolicReceipt.map((line, idx) => (
-              <div key={idx} className="flex items-start space-x-2 text-zinc-300">
-                <span className="text-zinc-600 select-none">[0{idx + 1}]</span>
-                <span className="leading-relaxed">{line}</span>
+              <div key={idx} className="flex items-start space-x-3 text-zinc-300">
+                <span className="text-zinc-600 select-none font-mono">[0{idx + 1}]</span>
+                <span className="leading-relaxed text-xs">{line}</span>
               </div>
             ))}
           </div>
@@ -141,7 +141,7 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
       <div>
         {verificationResult ? (
           verificationResult.verified ? (
-            <div className="bg-[#0A0A0A] border-l-2 border-emerald-400 border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+            <div className="bg-[#0A0A0A] border-l-2 border-emerald-400 border-y border-r border-[#262626] p-6 rounded-none text-xs font-mono space-y-2">
               <div className="flex items-center space-x-2 text-emerald-400">
                 <Check className="w-4 h-4 text-emerald-400" />
                 <span className="font-bold uppercase tracking-wider text-sm">
@@ -152,13 +152,13 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
                 Zero knowledge proof cryptographically satisfies all statutory criteria. Personal data was neither revealed nor transmitted.
               </p>
               {verificationResult.nullifierHash && (
-                <div className="mt-2 p-3 bg-black border border-[#262626] text-zinc-300 break-all text-[11px]">
+                <div className="mt-2 p-3 bg-black border border-[#262626] text-zinc-300 break-all text-xs">
                   Nullifier Lock: {verificationResult.nullifierHash}
                 </div>
               )}
             </div>
           ) : verificationResult.sybilBlocked ? (
-            <div className="bg-[#0A0A0A] border-l-2 border-amber-400 border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+            <div className="bg-[#0A0A0A] border-l-2 border-amber-400 border-y border-r border-[#262626] p-6 rounded-none text-xs font-mono space-y-2">
               <div className="flex items-center space-x-2 text-amber-400">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 <span className="font-bold uppercase tracking-wider text-sm">
@@ -170,7 +170,7 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
               </p>
             </div>
           ) : (
-            <div className="bg-[#0A0A0A] border-l-2 border-[#D71921] border-y border-r border-[#262626] p-5 rounded-none text-xs font-mono space-y-2">
+            <div className="bg-[#0A0A0A] border-l-2 border-[#D71921] border-y border-r border-[#262626] p-6 rounded-none text-xs font-mono space-y-2">
               <div className="flex items-center space-x-2 text-[#D71921]">
                 <X className="w-4 h-4 text-[#D71921]" />
                 <span className="font-bold uppercase tracking-wider text-sm">
@@ -183,37 +183,37 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({
             </div>
           )
         ) : (
-          <div className="bg-[#0A0A0A] border border-[#262626] p-4 rounded-none text-zinc-500 font-mono text-xs flex items-center justify-center space-x-2">
+          <div className="bg-[#0A0A0A] border border-[#262626] p-5 rounded-none text-zinc-500 font-mono text-xs flex items-center justify-center space-x-2">
             <ShieldCheck className="w-4 h-4 opacity-40" />
-            <span className="uppercase text-[11px]">Awaiting Proof Submission From [ 02 // NETWORK INSPECTOR ]</span>
+            <span className="uppercase text-[11px]">Awaiting Proof Submission From [ 02 Network Inspector ]</span>
           </div>
         )}
       </div>
 
       {/* Anonymous Nullifier Ledger */}
-      <div className="bg-[#0A0A0A] border border-[#262626] p-5 rounded-none font-mono text-xs space-y-3">
+      <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none font-mono text-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#1F1F1F] text-zinc-400">
           <span className="uppercase text-[11px] tracking-wider">// Committed Nullifier Ledger</span>
           <span className="text-zinc-500">{nullifierLedger.length} registered</span>
         </div>
 
-        <div className="bg-black border border-[#1A1A1A] p-3 max-h-[180px] overflow-y-auto space-y-2">
+        <div className="bg-black border border-[#1A1A1A] p-4 max-h-[220px] overflow-y-auto space-y-2">
           {nullifierLedger.length > 0 ? (
             nullifierLedger.map((row, idx) => (
               <div
                 key={idx}
-                className="p-2.5 bg-[#0D0D0D] border border-[#222222] flex items-center justify-between text-xs"
+                className="p-3 bg-[#0D0D0D] border border-[#222222] flex items-center justify-between text-xs"
               >
-                <span className="text-zinc-300 truncate max-w-[260px] font-mono">
+                <span className="text-zinc-300 truncate max-w-[360px] font-mono">
                   {row.nullifier}
                 </span>
-                <span className="text-emerald-400 font-mono text-[10px] uppercase">
+                <span className="text-emerald-400 font-mono text-[10px] uppercase font-bold">
                   Committed ({row.timestamp})
                 </span>
               </div>
             ))
           ) : (
-            <div className="text-center text-zinc-600 py-6 text-[11px] uppercase tracking-wider">
+            <div className="text-center text-zinc-600 py-8 text-[11px] uppercase tracking-wider">
               No Nullifiers Committed in Current Session
             </div>
           )}

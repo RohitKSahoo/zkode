@@ -22,7 +22,7 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
   signatureTampered,
 }) => {
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Page Header */}
       <div className="bg-[#0A0A0A] border border-[#262626] p-6 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start space-x-3.5">
@@ -68,12 +68,12 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
         </div>
       )}
 
-      {/* Credentials Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Credentials Grid - Spread across screen */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* 1. National Identity Card */}
-        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-5 rounded-none flex flex-col justify-between transition-colors">
+        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-6 rounded-none flex flex-col justify-between transition-colors">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-5">
               <div className="flex items-center space-x-2 text-zinc-300">
                 <User className="w-4 h-4 text-zinc-400" />
                 <span className="font-mono text-xs uppercase font-medium">01 // Identity</span>
@@ -83,31 +83,31 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
               </span>
             </div>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-4 font-mono text-xs">
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Date of Birth</span>
-                <span className="text-white font-medium text-sm">{credentials.birthTimestamp}</span>
-                <span className="text-zinc-500 text-[11px] ml-1.5">(Age 23)</span>
+                <span className="text-white font-medium text-base">{credentials.birthTimestamp}</span>
+                <span className="text-zinc-500 text-xs ml-2">(Age 23)</span>
               </div>
 
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Holder Secret ID</span>
                 <span className="text-zinc-400 text-xs truncate block font-mono">
-                  0x{credentials.userSecretId.slice(0, 12)}...
+                  0x{credentials.userSecretId.slice(0, 16)}...
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1A1A1A] text-[10px] font-mono text-zinc-500 uppercase">
+          <div className="mt-6 pt-3 border-t border-[#1A1A1A] text-[10px] font-mono text-zinc-500 uppercase">
             Format: ISO-8601 YYYYMMDD
           </div>
         </div>
 
         {/* 2. Banking Financial Statement */}
-        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-5 rounded-none flex flex-col justify-between transition-colors">
+        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-6 rounded-none flex flex-col justify-between transition-colors">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-5">
               <div className="flex items-center space-x-2 text-zinc-300">
                 <Building2 className="w-4 h-4 text-zinc-400" />
                 <span className="font-mono text-xs uppercase font-medium">02 // Banking</span>
@@ -117,33 +117,33 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
               </span>
             </div>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-4 font-mono text-xs">
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Liquid Balance</span>
-                <span className={`text-base font-bold ${signatureTampered ? "text-[#D71921] line-through" : "text-white"}`}>
+                <span className={`text-lg font-bold ${signatureTampered ? "text-[#D71921] line-through" : "text-white"}`}>
                   ₹{parseInt(credentials.actualBalance || "0", 10).toLocaleString()}
                 </span>
               </div>
 
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Annual Income</span>
-                <span className="text-zinc-300 font-medium text-xs">
+                <span className="text-zinc-300 font-medium text-sm">
                   ₹{parseInt(credentials.actualIncome || "0", 10).toLocaleString()}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1A1A1A] flex items-center justify-between text-[10px] font-mono text-zinc-500">
+          <div className="mt-6 pt-3 border-t border-[#1A1A1A] flex items-center justify-between text-[10px] font-mono text-zinc-500">
             <span>EXP: {credentials.expirationTimestamp}</span>
-            <span className="truncate max-w-[90px]">SIG: {credentials.sigS.slice(0, 6)}..</span>
+            <span className="truncate max-w-[120px]">SIG: {credentials.sigS.slice(0, 10)}...</span>
           </div>
         </div>
 
         {/* 3. Academic Portal Credential */}
-        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-5 rounded-none flex flex-col justify-between transition-colors">
+        <div className="bg-[#0A0A0A] border border-[#262626] hover:border-[#404040] p-6 rounded-none flex flex-col justify-between transition-colors">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1A1A] mb-5">
               <div className="flex items-center space-x-2 text-zinc-300">
                 <GraduationCap className="w-4 h-4 text-zinc-400" />
                 <span className="font-mono text-xs uppercase font-medium">03 // Academic</span>
@@ -153,10 +153,10 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
               </span>
             </div>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-4 font-mono text-xs">
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Grade Average</span>
-                <span className="text-white font-bold text-base">
+                <span className="text-white font-bold text-lg">
                   {(parseInt(credentials.creditOrCgpaScore || "0", 10) / 100).toFixed(2)}
                   <span className="text-zinc-500 text-xs font-normal"> / 10.00</span>
                 </span>
@@ -164,12 +164,12 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
 
               <div>
                 <span className="text-zinc-500 text-[10px] uppercase block tracking-wider">Quantized Score</span>
-                <span className="text-zinc-300 font-medium text-xs">{credentials.creditOrCgpaScore} PTS</span>
+                <span className="text-zinc-300 font-medium text-sm">{credentials.creditOrCgpaScore} PTS</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#1A1A1A] text-[10px] font-mono text-zinc-500 uppercase">
+          <div className="mt-6 pt-3 border-t border-[#1A1A1A] text-[10px] font-mono text-zinc-500 uppercase">
             Proof Scale: 100x Multiplier
           </div>
         </div>
@@ -182,7 +182,7 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
             <span className="w-1.5 h-1.5 bg-[#D71921]" />
             Local Proving Engine (Browser WebAssembly)
           </h3>
-          <p className="text-xs text-zinc-400 mt-1 font-sans max-w-md">
+          <p className="text-xs text-zinc-400 mt-1 font-sans max-w-xl">
             Groth16 SNARK proof synthesis over alt_bn128 curve inside dedicated Web Worker. Zero DOM blocking.
           </p>
         </div>
@@ -191,7 +191,7 @@ export const PrivateVault: React.FC<PrivateVaultProps> = ({
           <button
             onClick={onGenerateProof}
             disabled={isProving}
-            className={`px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider rounded-none border transition-all flex items-center justify-center space-x-2 ${
+            className={`px-8 py-3.5 font-mono text-xs font-bold uppercase tracking-wider rounded-none border transition-all flex items-center justify-center space-x-2 ${
               isProving
                 ? "bg-[#171717] text-zinc-500 border-[#262626] cursor-wait"
                 : "bg-white hover:bg-zinc-200 text-black border-white active:scale-[0.98]"

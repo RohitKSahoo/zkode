@@ -305,60 +305,45 @@ export default function Home() {
     <div className="flex flex-col min-h-screen text-[#FAFAFA]">
       <Header />
 
-      {/* Hero Section */}
-      <section className="px-6 pt-10 pb-8 text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 mb-4 bg-[#0A0A0A] border border-[#262626] rounded-none">
-          <span className="w-1.5 h-1.5 bg-[#D71921]" />
-          <span className="font-mono text-[11px] text-zinc-300 uppercase tracking-widest">
-            Groth16 Zero Knowledge System
-          </span>
+      {/* Main Adaptive Page View Container - Spreads across screen */}
+      <main className="flex-1 px-6 sm:px-10 pt-6 pb-28 w-full max-w-[1920px] mx-auto">
+        <div key={activePage} className="animate-slide-up w-full">
+          {activePage === "vault" && (
+            <PrivateVault
+              credentials={credentials}
+              isProving={isProving}
+              proverTimeMs={proverTimeMs}
+              onGenerateProof={handleGenerateProof}
+              onMintNewDemo={handleMintNewDemo}
+              signatureTampered={signatureTampered}
+            />
+          )}
+
+          {activePage === "network" && (
+            <NetworkInspector
+              proofData={proofData}
+              nullifierHash={nullifierHash}
+              sessionNonce={sessionNonce}
+              nonceTtl={nonceTtl}
+              onSubmitProof={handleSubmitProof}
+              isSubmitting={isSubmitting}
+              canSubmit={!!proofData && !isProving}
+            />
+          )}
+
+          {activePage === "verifier" && (
+            <VerifierPortal
+              policyPrompt={policyPrompt}
+              onPolicyChange={setPolicyPrompt}
+              onCompilePolicy={handleCompilePolicy}
+              isCompiling={isCompiling}
+              compiledPolicy={policy as any}
+              symbolicReceipt={symbolicReceipt}
+              verificationResult={verificationResult}
+              nullifierLedger={nullifierLedger}
+            />
+          )}
         </div>
-        <h1 className="heading-hero font-bold tracking-tight mb-3">
-          Prove your eligibility without revealing your identity
-        </h1>
-        <p className="body-standard max-w-lg mx-auto">
-          Statutory compliance verified locally in browser WebAssembly using zero knowledge proofs.
-          Zero bytes of personal data transmitted across the wire.
-        </p>
-      </section>
-
-      {/* Main Single Page View Container */}
-      <main className="flex-1 px-4 pb-32 w-full max-w-5xl mx-auto">
-        {activePage === "vault" && (
-          <PrivateVault
-            credentials={credentials}
-            isProving={isProving}
-            proverTimeMs={proverTimeMs}
-            onGenerateProof={handleGenerateProof}
-            onMintNewDemo={handleMintNewDemo}
-            signatureTampered={signatureTampered}
-          />
-        )}
-
-        {activePage === "network" && (
-          <NetworkInspector
-            proofData={proofData}
-            nullifierHash={nullifierHash}
-            sessionNonce={sessionNonce}
-            nonceTtl={nonceTtl}
-            onSubmitProof={handleSubmitProof}
-            isSubmitting={isSubmitting}
-            canSubmit={!!proofData && !isProving}
-          />
-        )}
-
-        {activePage === "verifier" && (
-          <VerifierPortal
-            policyPrompt={policyPrompt}
-            onPolicyChange={setPolicyPrompt}
-            onCompilePolicy={handleCompilePolicy}
-            isCompiling={isCompiling}
-            compiledPolicy={policy as any}
-            symbolicReceipt={symbolicReceipt}
-            verificationResult={verificationResult}
-            nullifierLedger={nullifierLedger}
-          />
-        )}
       </main>
 
       {/* Expandable Footer Pill Menu - Visible ONLY in the Verifier Page */}
@@ -373,7 +358,7 @@ export default function Home() {
         />
       )}
 
-      {/* Bottom Dock for Switching Pages */}
+      {/* Bottom Dock for Switching Pages (clean labels, no //) */}
       <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
         <div className="bg-[#0A0A0A]/95 backdrop-blur-md border border-[#262626] p-1.5 flex items-center space-x-1 shadow-2xl rounded-none font-mono text-xs">
           <button
@@ -385,7 +370,7 @@ export default function Home() {
             }`}
           >
             <span className={activePage === "vault" ? "text-black" : "text-[#D71921]"}>01</span>
-            <span>// Private Vault</span>
+            <span>Private Vault</span>
           </button>
 
           <button
@@ -397,7 +382,7 @@ export default function Home() {
             }`}
           >
             <span className={activePage === "network" ? "text-black" : "text-[#D71921]"}>02</span>
-            <span>// Network Inspector</span>
+            <span>Network Inspector</span>
           </button>
 
           <button
@@ -409,7 +394,7 @@ export default function Home() {
             }`}
           >
             <span className={activePage === "verifier" ? "text-black" : "text-[#D71921]"}>03</span>
-            <span>// Policy Studio</span>
+            <span>Policy Studio</span>
           </button>
         </div>
       </nav>
