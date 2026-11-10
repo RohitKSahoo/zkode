@@ -27,13 +27,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source code, verification keys, and database init
 COPY . .
 
-# Expose default backend port
-EXPOSE 8000
+# Expose application port
+EXPOSE 10000 8000
 
-# Healthcheck
-HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/api/health || exit 1
+# Launch Uvicorn server respecting Render's dynamic $PORT
+CMD ["python", "-m", "app.main"]
 
-# Launch Uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
