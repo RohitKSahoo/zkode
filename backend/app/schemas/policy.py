@@ -37,3 +37,4 @@ class CompiledPolicyResponse(BaseModel):
     maxIncomeAllowed: str
     minScoreRequired: str
     symbolicReceipt: List[str]
+

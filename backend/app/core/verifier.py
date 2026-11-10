@@ -10,6 +10,7 @@ from app.core.database import (
     validate_and_consume_nonce,
     get_latest_policy_for_scope,
     register_nullifier_atomic,
+    is_nullifier_claimed,
 )
 
 VKEY_PATH = os.path.join(os.path.dirname(__file__), "verification_key.json")
@@ -83,8 +84,9 @@ def verify_snarkjs_pairing(
             f"  const proof = JSON.parse(fs.readFileSync('{proof_file.replace(os.sep, '/')}')); "
             f"  const res = await snarkjs.groth16.verify(vKey, publicSignals, proof); "
             f"  console.log(res ? 'OK' : 'FAIL'); "
+            f"  process.exit(0); "
             f"}} "
-            f"run().catch(e => console.error(e.message));"
+            f"run().catch(e => {{ console.error(e.message); process.exit(1); }});"
         )
 
         try:
@@ -129,7 +131,16 @@ def verify_proof_and_register(
             "telemetry": {"latencyMs": round((time.perf_counter() - start_time) * 1000, 2)}
         }
 
-    # Step 2: Fetch authoritative server policy
+    # Step 2: Instant Sybil registry check (fail-fast before expensive pairing)
+    if is_nullifier_claimed(client_nullifier, service_scope_id):
+        return {
+            "verified": False,
+            "error": f"Sybil double-dip violation: Nullifier {client_nullifier} already claimed for scope {service_scope_id}.",
+            "sybilBlocked": True,
+            "telemetry": {"latencyMs": round((time.perf_counter() - start_time) * 1000, 2)}
+        }
+
+    # Step 3: Fetch authoritative server policy
     db_policy = get_latest_policy_for_scope(service_scope_id)
     policy_params = {
         "currentTimestamp": "20261110",
@@ -201,3 +212,4 @@ def verify_proof_and_register(
             "proofBytes": 256
         }
     }
+

@@ -88,3 +88,4 @@ def test_mock_credential_minting():
     assert "sigR8x" in data["credential"]
     assert "sigR8y" in data["credential"]
     assert "sigS" in data["credential"]
+

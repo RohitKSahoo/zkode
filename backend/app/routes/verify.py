@@ -40,3 +40,4 @@ def post_verify_proof(req: VerifyProofRequest):
         sybilBlocked=False,
         telemetry=result.get("telemetry", {})
     )
+

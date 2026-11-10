@@ -22,3 +22,4 @@ class VerifyProofResponse(BaseModel):
     error: Optional[str] = None
     sybilBlocked: bool = False
     telemetry: Dict[str, Any] = Field(default_factory=dict)
+

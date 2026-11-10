@@ -78,3 +78,4 @@ def mint_babyjubjub_credential(
     )
 
     return json.loads(res.stdout.strip())
+

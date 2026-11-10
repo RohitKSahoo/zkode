@@ -28,3 +28,4 @@ def get_health():
         "groqAgentReady": groq_ready,
         "serverTime": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
+

@@ -56,6 +56,20 @@ def init_db():
     conn.commit()
     conn.close()
 
+def is_nullifier_claimed(nullifier_hash: str, service_scope_id: str) -> bool:
+    """Check if a nullifier has already been claimed for a given service scope."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT 1 FROM nullifier_registry 
+               WHERE nullifier_hash = ? AND service_scope_id = ?""",
+            (nullifier_hash, service_scope_id)
+        )
+        return cursor.fetchone() is not None
+    finally:
+        conn.close()
+
 def register_nullifier_atomic(
     nullifier_hash: str, 
     service_scope_id: str, 

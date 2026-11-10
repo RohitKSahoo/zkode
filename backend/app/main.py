@@ -47,3 +47,4 @@ def root():
         "status": "operational",
         "docs": "/docs"
     }
+

@@ -47,3 +47,4 @@ def post_compile_policy(req: CompilePolicyRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Policy compilation error: {str(e)}")
+

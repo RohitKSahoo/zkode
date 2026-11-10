@@ -33,3 +33,4 @@ def get_challenge(scope_id: str = Query(default="901", description="Campaign / S
         expiresAt=expires_at,
         ttlSeconds=60
     )
+

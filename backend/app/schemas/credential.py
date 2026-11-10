@@ -23,3 +23,4 @@ class MintCredentialResponse(BaseModel):
     issuerPubKey: IssuerPubKey
     credential: Dict[str, str]
     error: Optional[str] = None
+
